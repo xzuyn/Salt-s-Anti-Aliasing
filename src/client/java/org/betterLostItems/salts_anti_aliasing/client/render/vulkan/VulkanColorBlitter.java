@@ -67,7 +67,7 @@ public final class VulkanColorBlitter {
                     destinationVulkanTexture.vkImage(),
                     VK12.VK_IMAGE_LAYOUT_GENERAL,
                     region,
-                    VK12.VK_FILTER_LINEAR
+                    VK12.VK_FILTER_NEAREST
             );
             completedBarrier(commandBuffer, stack, sourceVulkanTexture, destinationVulkanTexture);
             int endResult = VK12.vkEndCommandBuffer(commandBuffer);
