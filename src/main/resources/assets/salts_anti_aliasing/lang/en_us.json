@@ -22,6 +22,8 @@
   "options.salts_anti_aliasing.mode.msaa.summary": "Samples polygon edges multiple times while keeping cutout textures binary by default. Optional alpha-to-coverage can smooth foliage edges at the cost of possible distant fading.",
   "options.salts_anti_aliasing.mode.ssaa": "SSAA",
   "options.salts_anti_aliasing.mode.ssaa.summary": "Renders the scene above native resolution and downsamples it. Use it when you want brute-force image quality and have plenty of performance headroom. Benefit: excellent edge cleanup and very stable detail.",
+  "options.salts_anti_aliasing.mode.ssaa_fxaa": "SSAA + FXAA",
+  "options.salts_anti_aliasing.mode.ssaa_fxaa.summary": "Renders the scene above native resolution, downsamples it, then runs FXAA on the result. Use it when SSAA still leaves shimmer or jagged edges, especially at scales that don't divide evenly into your output resolution. Benefit: SSAA's detail plus a cheap cleanup pass for the edges it misses.",
   "options.salts_anti_aliasing.mode.smaa": "SMAA",
   "options.salts_anti_aliasing.mode.smaa.summary": "Detects edge patterns and blends along them more carefully than FXAA. Use it when you want stronger smoothing without as much softness. Benefit: cleaner diagonals and better detail retention.",
   "options.salts_anti_aliasing.mode.taa": "TAA",

@@ -37,6 +37,10 @@ final class AntiAliasingVideoSettingsSectionTest {
                 AntiAliasingVideoSettingsSection.controlLayout(AntiAliasingMode.SSAA)
         );
         assertEquals(
+                List.of(SHARPNESS, SSAA_SCALE),
+                AntiAliasingVideoSettingsSection.controlLayout(AntiAliasingMode.SSAA_FXAA)
+        );
+        assertEquals(
                 List.of(SHARPNESS, SPATIAL_UPSCALE_QUALITY),
                 AntiAliasingVideoSettingsSection.controlLayout(AntiAliasingMode.NIS_UPSCALE)
         );

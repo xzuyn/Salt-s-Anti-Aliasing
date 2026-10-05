@@ -104,7 +104,7 @@ public final class AntiAliasingConfig {
      * @return whether this object requires the described render path
      */
     public boolean usesInternalResolutionPath() {
-        return mode == AntiAliasingMode.SSAA || mode.usesDedicatedUpscalePass();
+        return mode.usesSupersampling() || mode.usesDedicatedUpscalePass();
     }
 
     /**
@@ -114,7 +114,7 @@ public final class AntiAliasingConfig {
      */
     public float sceneRenderScale() {
         return switch (mode) {
-            case SSAA -> ssaaScaleLevel.scaleFactor();
+            case SSAA, SSAA_FXAA -> ssaaScaleLevel.scaleFactor();
             case DLSS_SUPER_RESOLUTION -> dlssQualityPreset == DlssQualityPreset.ULTRA_PERFORMANCE ? 0.33f : 0.5f;
             case FSR2_SUPER_RESOLUTION, FSR3_SUPER_RESOLUTION, FSR3_SUPER_RESOLUTION_FRAME_GENERATION ->
                     fsrQualityPreset.scaleFactor();

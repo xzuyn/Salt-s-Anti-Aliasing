@@ -65,7 +65,7 @@ public final class RenderPipelinePlanner {
             }
         }
 
-        if (config.mode == AntiAliasingMode.SSAA) {
+        if (config.mode.usesSupersampling()) {
             // SSAA resolves a high-resolution scene back to the native output.
             currentColor = addPass(
                     passes,
@@ -100,7 +100,7 @@ public final class RenderPipelinePlanner {
         switch (config.mode) {
             case OFF, NIS_SHARPEN -> {
             }
-            case FXAA -> currentColor = addPass(
+            case FXAA, SSAA_FXAA -> currentColor = addPass(
                     passes,
                     targets,
                     "fxaa_resolve",

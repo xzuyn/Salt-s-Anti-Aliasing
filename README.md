@@ -86,6 +86,8 @@ Sharpening is an independent 0–100% control available with every mode, includi
 
 MSAA also exposes an optional alpha-to-coverage control, disabled by default. Enabling it smooths cutout texture edges but may make distant foliage fade or stipple.
 
+**SSAA + FXAA** renders and downsamples exactly like SSAA (same scale slider), then runs FXAA on the native-resolution result. The downsample is a single bilinear blit, so only 200% averages every rendered pixel; at other scales (300% in particular) some edges survive the resolve, and the FXAA pass cleans those up cheaply.
+
 SSAA percentages are per axis. The 200% option renders at twice the output width and twice the output height, so it evaluates four source pixels for every output pixel: conventional 4x SSAA. The selectable range now extends to 800% per axis (64x as many scene pixels). Values above 400% display an extreme-performance warning because they may heavily impact frame rate and GPU memory usage or exceed the GPU's maximum texture size at high output resolutions.
 
 The optional **Cycle AA Mode** key binding is unbound by default so it cannot collide with shader-pack shortcuts (including Iris's `O` binding). It can be assigned under Minecraft's Controls screen; existing custom bindings remain intact. Existing installations that already saved the old `O` default should clear or reassign it once in Controls.

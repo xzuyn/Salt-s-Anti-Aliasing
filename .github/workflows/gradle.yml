@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - "main"
+      - "master"
+      - "fabric-**"
+      - "experiment/**"
+      - "ver/**"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      # build.gradle targets Java 25 (targetJavaVersion).
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: gradle
+
+      # Restores Gradle caches. The project's wrapper (Gradle 9.4.0) does the actual build.
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build with Gradle wrapper
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          ./gradlew --version
+          ./gradlew build
+
+      # Upload the remapped mod jar(s) from build/libs.
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod-build-artifacts
+          path: |
+            **/build/libs/*.jar
+            !**/*-sources.jar
+            !**/*-dev.jar
+            !**/*-shadow-dev.jar
+          if-no-files-found: warn
+          retention-days: 14

@@ -15,6 +15,7 @@ public enum AntiAliasingMode {
     FXAA("FXAA", false, false),
     MSAA("MSAA", false, false),
     SSAA("SSAA", false, false),
+    SSAA_FXAA("SSAA + FXAA", false, false),
     SMAA("SMAA", false, false),
     // Serialized legacy alias; intentionally omitted from IMPLEMENTED_MODES.
     SMAA_NIS_SHARPEN("SMAA + NIS Sharpen", false, false),
@@ -35,6 +36,7 @@ public enum AntiAliasingMode {
             FXAA,
             MSAA,
             SSAA,
+            SSAA_FXAA,
             SMAA,
             NIS_UPSCALE,
             DLSS_SUPER_RESOLUTION,
@@ -93,7 +95,23 @@ public enum AntiAliasingMode {
      * @return whether this object requires the described render path
      */
     public boolean usesSsaaScaleControl() {
-        return this == SSAA;
+        return usesSupersampling();
+    }
+
+    /**
+     * Checks whether the scene is rendered above native resolution and downsampled.
+     * @return true for SSAA and SSAA combined with a post-process filter
+     */
+    public boolean usesSupersampling() {
+        return this == SSAA || this == SSAA_FXAA;
+    }
+
+    /**
+     * Checks whether an FXAA pass runs on the native-resolution image.
+     * @return true for FXAA and SSAA + FXAA
+     */
+    public boolean usesFxaaPass() {
+        return this == FXAA || this == SSAA_FXAA;
     }
 
     /**

@@ -109,7 +109,7 @@ public final class AntiAliasingVideoSettingsSection {
                     ControlKind.MSAA_SAMPLES,
                     ControlKind.MSAA_ALPHA_TO_COVERAGE
             );
-            case SSAA -> List.of(ControlKind.SHARPNESS, ControlKind.SSAA_SCALE);
+            case SSAA, SSAA_FXAA -> List.of(ControlKind.SHARPNESS, ControlKind.SSAA_SCALE);
             case NIS_UPSCALE, FSR1_UPSCALE ->
                     List.of(ControlKind.SHARPNESS, ControlKind.SPATIAL_UPSCALE_QUALITY);
             case DLSS_SUPER_RESOLUTION -> List.of(ControlKind.SHARPNESS, ControlKind.DLSS_QUALITY);

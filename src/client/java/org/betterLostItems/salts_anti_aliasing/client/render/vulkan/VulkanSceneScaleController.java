@@ -386,7 +386,7 @@ public final class VulkanSceneScaleController {
      */
     private String resolvePassLabel() {
         return switch (activeMode) {
-            case SSAA -> "Salt's SSAA Resolve";
+            case SSAA, SSAA_FXAA -> "Salt's SSAA Resolve";
             case FSR1_UPSCALE -> "Salt's FSR1 Upscale Resolve";
             case NIS_UPSCALE -> "Salt's NIS Upscale Resolve";
             default -> "Salt's Scene Resolve";
@@ -436,7 +436,7 @@ public final class VulkanSceneScaleController {
      * @return whether this object requires the described render path
      */
     private static boolean usesScaledSceneTarget(AntiAliasingMode mode) {
-        return mode == AntiAliasingMode.SSAA
+        return mode.usesSupersampling()
                 || mode == AntiAliasingMode.NIS_UPSCALE
                 || mode == AntiAliasingMode.FSR1_UPSCALE;
     }

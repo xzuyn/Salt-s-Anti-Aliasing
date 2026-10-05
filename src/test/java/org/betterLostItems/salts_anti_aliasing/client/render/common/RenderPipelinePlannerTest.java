@@ -63,6 +63,30 @@ final class RenderPipelinePlannerTest {
         assertTrue(passIds(plan).contains("ssaa_resolve"));
     }
 
+    @Test
+    void plansSsaaResolveBeforeFxaaAtNativeOutputSize() {
+        AntiAliasingConfig config = config(AntiAliasingMode.SSAA_FXAA, 0.0f);
+        config.ssaaScaleLevel = SsaaScaleLevel.X300;
+        config.sanitize();
+
+        PipelinePlan plan = planner.plan(BACKEND, config);
+        List<String> passIds = passIds(plan);
+        RenderTargetDescriptor sceneColor = plan.targets().stream()
+                .filter(target -> target.id().equals("scene_color"))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(3.0f, sceneColor.scale());
+        assertEquals(List.of("ssaa_resolve", "fxaa_resolve"), passIds);
+    }
+
+    @Test
+    void keepsFinalSharpenAfterSsaaFxaa() {
+        PipelinePlan plan = planner.plan(BACKEND, config(AntiAliasingMode.SSAA_FXAA, 0.5f));
+
+        assertEquals(List.of("ssaa_resolve", "fxaa_resolve", "nis_sharpen"), passIds(plan));
+    }
+
     private static AntiAliasingConfig config(AntiAliasingMode mode, float sharpenStrength) {
         AntiAliasingConfig config = new AntiAliasingConfig();
         config.sanitize();

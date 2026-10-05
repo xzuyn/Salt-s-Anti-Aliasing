@@ -137,7 +137,7 @@ public final class VulkanScenePostProcessor implements ScenePostProcessor {
      */
     private static List<Identifier> antiAliasingEffectsFor(AntiAliasingMode mode) {
         return switch (mode) {
-            case FXAA -> List.of(FXAA_EFFECT);
+            case FXAA, SSAA_FXAA -> List.of(FXAA_EFFECT);
             case SMAA, SMAA_NIS_SHARPEN -> List.of(SMAA_EFFECT);
             default -> List.of();
         };

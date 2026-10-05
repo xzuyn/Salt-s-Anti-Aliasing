@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class AntiAliasingModeTest {
     @Test
@@ -11,6 +12,19 @@ final class AntiAliasingModeTest {
         assertFalse(AntiAliasingMode.implementedModes().contains(AntiAliasingMode.NIS_SHARPEN));
         assertFalse(AntiAliasingMode.implementedModes().contains(AntiAliasingMode.SMAA_NIS_SHARPEN));
         assertFalse(AntiAliasingMode.implementedModes().contains(AntiAliasingMode.FSR1_RCAS));
+    }
+
+    @Test
+    void exposesSsaaFxaaAsASupersamplingModeWithAnFxaaPass() {
+        AntiAliasingMode mode = AntiAliasingMode.SSAA_FXAA;
+
+        assertTrue(AntiAliasingMode.implementedModes().contains(mode));
+        assertEquals(mode, AntiAliasingMode.clampImplemented(mode));
+        assertTrue(mode.usesSupersampling());
+        assertTrue(mode.usesSsaaScaleControl());
+        assertTrue(mode.usesFxaaPass());
+        assertFalse(AntiAliasingMode.SSAA.usesFxaaPass());
+        assertFalse(AntiAliasingMode.FXAA.usesSupersampling());
     }
 
     @Test

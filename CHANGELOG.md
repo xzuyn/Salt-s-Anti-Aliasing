@@ -24,6 +24,7 @@ These are the changes introduced on the `fabric-26.2` branch since `fabric-26.1.
 
 ### Image Quality
 
+- Added an SSAA + FXAA mode that downsamples the supersampled scene to native resolution and then applies FXAA, sharing the SSAA scale slider.
 - Reworked TAA history reprojection to remove heavy blur and reduce ghosting while retaining temporal edge stability.
 - Corrected FSR2 and FSR3 render dimensions, jitter, depth data, motion vectors, exposure, and temporal inputs.
 - Added proper linear-color processing around FidelityFX evaluation.
