@@ -70,6 +70,24 @@ public final class ConfigManager {
         return config.level;
     }
 
+    public synchronized SsaaSharpness sharpness() {
+        return config.sharpness;
+    }
+
+    /**
+     * Changes the sharpening applied to the SSAA result and saves it if it actually changed.
+     * @return the sharpness now in effect
+     */
+    public synchronized SsaaSharpness setSharpness(SsaaSharpness sharpness) {
+        SsaaSharpness requested = SsaaSharpness.clamp(sharpness);
+        if (requested != config.sharpness) {
+            config.sharpness = requested;
+            config.sanitize();
+            save();
+        }
+        return config.sharpness;
+    }
+
     /**
      * Changes the SSAA level and saves it if it actually changed.
      * @return the level now in effect

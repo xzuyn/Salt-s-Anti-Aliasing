@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.1 - Sharpness
+
+### Added
+
+- **SSAA Sharpness** setting (Off / Low / Medium / High, default Low) in Video Settings, Mod Menu and Sodium.
+  It runs a gentle contrast adaptive sharpen after the resolve to win back the detail that averaging removes.
+  The strength range is recalibrated from AMD's CAS defaults, which measured far too strong for Minecraft's
+  pixel-art textures (texture contrast 30-80% above native even at CAS's gentlest setting, with up to 12% edge
+  overshoot).
+- README guidance on why SSAA can look soft: the inherent filtering loss, the softer non-integer 2x level,
+  and Minecraft's own anisotropic/RGSS texture filtering.
+
+### Notes
+
+- Measured with the real shaders on a software OpenGL context: the resolve matches the ideal anti-aliased
+  image's texture contrast (within 3%), and Low sharpness brings it to within 1-2% of unfiltered rendering.
+
 ## 0.2.0 - SSAA only
 
 ### Changed

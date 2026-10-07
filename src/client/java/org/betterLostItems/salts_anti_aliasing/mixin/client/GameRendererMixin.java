@@ -58,7 +58,11 @@ public abstract class GameRendererMixin {
     private void saltsAntiAliasing$beginSupersampledScene(DeltaTracker deltaTracker, CallbackInfo callbackInfo) {
         GameRenderer gameRenderer = (GameRenderer) (Object) this;
         saltsAntiAliasing$globalScreenSizeOverridden = false;
-        SsaaController.instance().beginSceneRendering(gameRenderer, SaltsAntiAliasingClient.level());
+        SsaaController.instance().beginSceneRendering(
+                gameRenderer,
+                SaltsAntiAliasingClient.level(),
+                SaltsAntiAliasingClient.sharpness()
+        );
 
         // Shaders read the screen size from a global uniform; make it match the scene while supersampling.
         RenderTarget sceneTarget = gameRenderer.mainRenderTarget();

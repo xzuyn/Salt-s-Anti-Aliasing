@@ -2,6 +2,7 @@ package org.betterLostItems.salts_anti_aliasing.client.gui;
 
 import net.minecraft.network.chat.Component;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
+import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaTranslationKeys;
 
 /** Turns {@link SsaaLevel} values and translation keys into Minecraft text components. */
@@ -45,5 +46,15 @@ public final class ClientText {
     /** Tooltip without the Improved Transparency note, for UIs that disable the control instead. */
     public static Component tooltip(SsaaLevel level) {
         return tooltip(level, false);
+    }
+
+    /** "Off", "Low", "Medium" or "High". */
+    public static Component sharpnessLabel(SsaaSharpness sharpness) {
+        return Component.translatable(SsaaTranslationKeys.sharpnessKey(sharpness));
+    }
+
+    /** Tooltip for the sharpness control; the same for every setting. */
+    public static Component sharpnessTooltip(SsaaSharpness sharpness) {
+        return Component.translatable(SsaaTranslationKeys.SHARPNESS_TOOLTIP);
     }
 }

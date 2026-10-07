@@ -7,5 +7,12 @@
   "options.salts_anti_aliasing.ssaa.tooltip": "Renders the world at a higher resolution, then averages it down to your screen to smooth jagged edges and shimmering. 4x renders four times as many pixels (twice the width and twice the height), 9x renders nine times as many, and so on. Higher values look smoother but cost much more performance and GPU memory. Your HUD stays at normal resolution.",
   "options.salts_anti_aliasing.ssaa.warning_label": "%s (!)",
   "options.salts_anti_aliasing.ssaa.warning": "Warning: %1$s renders %2$s times as many pixels as your screen. This may heavily impact performance, use large amounts of GPU memory, or exceed your GPU's maximum texture size, in which case SSAA is skipped.",
-  "options.salts_anti_aliasing.ssaa.improved_transparency": "SSAA cannot be turned on or changed while Improved Transparency is on. You can still turn it off."
+  "options.salts_anti_aliasing.ssaa.improved_transparency": "SSAA cannot be turned on or changed while Improved Transparency is on. You can still turn it off.",
+  "options.salts_anti_aliasing.sharpness": "SSAA Sharpness: %s",
+  "options.salts_anti_aliasing.sharpness.name": "SSAA Sharpness",
+  "options.salts_anti_aliasing.sharpness.off": "Off",
+  "options.salts_anti_aliasing.sharpness.low": "Low",
+  "options.salts_anti_aliasing.sharpness.medium": "Medium",
+  "options.salts_anti_aliasing.sharpness.high": "High",
+  "options.salts_anti_aliasing.sharpness.tooltip": "Averaging many pixels into one removes jagged edges but also softens fine detail slightly. This adds a gentle, edge-aware sharpen to the result to win some of that back. Low is meant to roughly match the crispness of rendering without SSAA; Medium and High go beyond it and can add faint halos around high-contrast edges. Only applies while SSAA is on."
 }

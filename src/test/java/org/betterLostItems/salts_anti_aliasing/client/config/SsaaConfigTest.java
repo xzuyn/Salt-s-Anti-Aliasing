@@ -25,7 +25,28 @@ final class SsaaConfigTest {
         config.sanitize();
 
         assertEquals(SsaaLevel.OFF, config.level);
+        assertEquals(SsaaSharpness.defaultSharpness(), config.sharpness);
         assertEquals(SsaaConfig.CURRENT_CONFIG_VERSION, config.configVersion);
+    }
+
+    @Test
+    void currentConfigWithoutASharpnessGetsTheDefault() {
+        assertEquals(SsaaSharpness.LOW, parse("{\"configVersion\": 3, \"level\": \"X4\"}").sharpness);
+    }
+
+    @Test
+    void savedSharpnessIsKept() {
+        assertEquals(SsaaSharpness.HIGH, parse("{\"configVersion\": 3, \"level\": \"X4\", \"sharpness\": \"HIGH\"}").sharpness);
+    }
+
+    @Test
+    void unknownSharpnessNamesFallBackToTheDefault() {
+        assertEquals(SsaaSharpness.LOW, parse("{\"configVersion\": 3, \"sharpness\": \"EXTREME\"}").sharpness);
+    }
+
+    @Test
+    void migratedOldConfigGetsTheDefaultSharpness() {
+        assertEquals(SsaaSharpness.LOW, parse("{\"configVersion\": 2, \"mode\": \"SSAA\", \"ssaaScaleLevel\": \"X200\"}").sharpness);
     }
 
     @Test

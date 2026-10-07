@@ -1,7 +1,7 @@
 package org.betterLostItems.salts_anti_aliasing.client.config;
 
 /**
- * Mutable settings persisted to disk. Only one real setting exists now: the SSAA level.
+ * Mutable settings persisted to disk: the SSAA level and the sharpening applied to its result.
  *
  * <p>Releases before 0.2 stored a multi-mode config. Their {@code mode} and
  * {@code ssaaScaleLevel} fields are still read once so that players who used SSAA keep an
@@ -12,6 +12,7 @@ public final class SsaaConfig {
 
     public Integer configVersion;
     public SsaaLevel level = SsaaLevel.defaultLevel();
+    public SsaaSharpness sharpness = SsaaSharpness.defaultSharpness();
 
     // Legacy fields (config version < 3). Read for migration, then cleared so they are not rewritten.
     public String mode;
@@ -21,6 +22,7 @@ public final class SsaaConfig {
         SsaaConfig copy = new SsaaConfig();
         copy.configVersion = configVersion;
         copy.level = level;
+        copy.sharpness = sharpness;
         copy.mode = mode;
         copy.ssaaScaleLevel = ssaaScaleLevel;
         return copy;
@@ -36,6 +38,7 @@ public final class SsaaConfig {
             migrateLegacyConfig();
         }
         level = SsaaLevel.clamp(level);
+        sharpness = SsaaSharpness.clamp(sharpness);
         configVersion = CURRENT_CONFIG_VERSION;
         mode = null;
         ssaaScaleLevel = null;

@@ -7,8 +7,9 @@ are drawn afterwards at normal resolution, so text stays sharp.
 
 ## Using it
 
-Open **Options > Video Settings** and use the **Supersampling (SSAA)** slider at the bottom. With Mod Menu
-installed there is also a settings screen, and with Sodium installed there is a "Salt's Anti Aliasing" page.
+Open **Options > Video Settings** and use the sliders at the bottom: **Supersampling (SSAA)** and
+**SSAA Sharpness**. With Mod Menu installed there is also a settings screen, and with Sodium installed there
+is a "Salt's Anti Aliasing" page.
 
 Levels are named by how many rendered pixels are averaged into each screen pixel, like other games and
 GPU drivers do:
@@ -30,6 +31,22 @@ Levels above 16x are marked with `(!)`: they cost a lot of performance and GPU m
 SSAA cannot be turned on or changed while Minecraft's **Improved Transparency** option is on. Turning it
 off is always allowed.
 
+### If the image looks soft
+
+Some softness is inherent: averaging many pixels into one is an anti-aliasing filter. In a test on a
+Minecraft-style pixel-art texture, a correct resolve ended up about 8% lower in edge contrast than rendering
+without SSAA. Three things help:
+
+- **SSAA Sharpness** (default Low) applies a gentle, edge-aware sharpen to the result. Low is calibrated to
+  roughly win back that 8%; Medium and High go beyond native crispness and can add faint halos on
+  high-contrast edges.
+- **Prefer 4x, 9x, 16x...** over 2x. Those scale each axis by a whole number, so output pixels line up with
+  rendered pixels. 2x is a factor of 1.41 per axis, so every output pixel blends partial source pixels,
+  which is measurably softer.
+- **Check Minecraft's own Texture Filtering option** (Video Settings). Since 1.21.11 the game offers
+  anisotropic filtering and RGSS texture filtering, and players report that these blur block textures. They
+  stack with SSAA's smoothing, so try turning them off.
+
 ## How it works
 
 1. `GameRendererMixin` swaps Minecraft's main render target for a larger scene target at the start of the
@@ -43,13 +60,17 @@ pixel averages every source pixel under it, weighted by how much of that pixel i
 level, including 2x, keeps brightness exact, and uses every rendered sample. Averaging happens on
 Minecraft's stored (gamma-encoded) colors, matching how the game blends everything else.
 
+When sharpness is not Off, a second pass (`ssaa_sharpen.fsh`) applies contrast adaptive sharpening in the
+style of AMD's FidelityFX CAS, with the strength range recalibrated for Minecraft's high-contrast textures.
+Flat areas are unchanged and the weight fades to zero near pure black and white, so it never clips.
+
 Earlier versions resolved with a single hardware linear blit. That only reads 2x2 pixels per output pixel,
 so above 2x it threw most samples away, and at odd integer scales (300%, 500%, 700%) it reduced to a single
 point sample, which is no anti-aliasing at all.
 
 ## Config
 
-`config/salts_anti_aliasing.json` stores a single `level`. Config files from earlier versions are migrated
+`config/salts_anti_aliasing.json` stores `level` and `sharpness`. Config files from earlier versions are migrated
 automatically: if SSAA was selected, the closest level is chosen (for example the old 200% becomes 4x);
 anything else becomes Off. All other old settings are discarded.
 

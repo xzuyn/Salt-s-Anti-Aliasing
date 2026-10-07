@@ -4,21 +4,23 @@ import net.caffeinemc.mods.sodium.api.config.ConfigEntryPoint;
 import net.caffeinemc.mods.sodium.api.config.ConfigState;
 import net.caffeinemc.mods.sodium.api.config.structure.ConfigBuilder;
 import net.caffeinemc.mods.sodium.api.config.structure.EnumOptionBuilder;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.betterLostItems.salts_anti_aliasing.SaltsAntiAliasing;
 import org.betterLostItems.salts_anti_aliasing.client.SaltsAntiAliasingClient;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
+import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaTranslationKeys;
 import org.betterLostItems.salts_anti_aliasing.client.gui.ClientText;
+import org.betterLostItems.salts_anti_aliasing.client.gui.SsaaVideoSettingsSection;
 
 /**
- * Adds a "Salt's Anti Aliasing" page with the SSAA level to Sodium's video settings. Sodium replaces
+ * Adds a "Salt's Anti Aliasing" page with the SSAA level and sharpness to Sodium's video settings. Sodium replaces
  * Minecraft's Video Settings screen, so the slider added there would otherwise not be reachable.
  */
 public final class SaltsAntiAliasingSodiumConfig implements ConfigEntryPoint {
     private static final Identifier SSAA_LEVEL_ID = Identifier.fromNamespaceAndPath(SaltsAntiAliasing.MOD_ID, "ssaa_level");
+    private static final Identifier SSAA_SHARPNESS_ID = Identifier.fromNamespaceAndPath(SaltsAntiAliasing.MOD_ID, "ssaa_sharpness");
 
     @Override
     public void registerConfigLate(ConfigBuilder builder) {
@@ -28,6 +30,7 @@ public final class SaltsAntiAliasingSodiumConfig implements ConfigEntryPoint {
                         .addOptionGroup(builder.createOptionGroup()
                                 .setName(Component.translatable(SsaaTranslationKeys.SECTION_HEADER))
                                 .addOption(createSsaaLevelOption(builder))
+                                .addOption(createSharpnessOption(builder))
                         ));
     }
 
@@ -42,6 +45,17 @@ public final class SaltsAntiAliasingSodiumConfig implements ConfigEntryPoint {
                 .setEnabledProvider(state -> ssaaAvailable(), ConfigState.UPDATE_ON_REBUILD);
     }
 
+    private static EnumOptionBuilder<SsaaSharpness> createSharpnessOption(ConfigBuilder builder) {
+        return builder.createEnumOption(SSAA_SHARPNESS_ID, SsaaSharpness.class)
+                .setName(Component.translatable(SsaaTranslationKeys.SHARPNESS_NAME))
+                .setTooltip(ClientText::sharpnessTooltip)
+                .setStorageHandler(SaltsAntiAliasingSodiumConfig::afterSave)
+                .setBinding(SaltsAntiAliasingSodiumConfig::setSharpness, SaltsAntiAliasingSodiumConfig::sharpness)
+                .setDefaultValue(SsaaSharpness.defaultSharpness())
+                .setElementNameProvider(ClientText::sharpnessLabel)
+                .setEnabledProvider(state -> SaltsAntiAliasingClient.configOrNull() != null, ConfigState.UPDATE_ON_REBUILD);
+    }
+
     /** The level is written to disk by the config manager as soon as it is set. */
     private static void afterSave() {
     }
@@ -49,7 +63,7 @@ public final class SaltsAntiAliasingSodiumConfig implements ConfigEntryPoint {
     /** Changing the level is blocked while Minecraft's Improved Transparency option is on. */
     private static boolean ssaaAvailable() {
         return SaltsAntiAliasingClient.configOrNull() != null
-                && !(Boolean) Minecraft.getInstance().options.improvedTransparency().get();
+                && !SsaaVideoSettingsSection.improvedTransparencyEnabled();
     }
 
     private static SsaaLevel level() {
@@ -58,5 +72,13 @@ public final class SaltsAntiAliasingSodiumConfig implements ConfigEntryPoint {
 
     private static void setLevel(SsaaLevel level) {
         SaltsAntiAliasingClient.config().setLevel(level);
+    }
+
+    private static SsaaSharpness sharpness() {
+        return SaltsAntiAliasingClient.sharpness();
+    }
+
+    private static void setSharpness(SsaaSharpness sharpness) {
+        SaltsAntiAliasingClient.config().setSharpness(sharpness);
     }
 }

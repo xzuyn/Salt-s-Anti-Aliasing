@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.Identifier;
 import org.betterLostItems.salts_anti_aliasing.SaltsAntiAliasing;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
+import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,9 +26,10 @@ import java.util.Set;
  *
  * <p>Each frame, while a level above Off is selected, Minecraft's main render target is
  * temporarily replaced by a larger scene target so the world renders at {@code level.scaleFactor()}
- * times the output size on each axis. Once the world is finished, the {@code ssaa_resolve} post
+ * times the output size on each axis. Once the world is finished, a {@code ssaa_resolve*} post
  * effect averages that image down into the real main target with an exact area-weighted box
- * filter, and the HUD and menus then draw on top at native resolution.</p>
+ * filter (optionally followed by a gentle adaptive sharpen), and the HUD and menus then draw on top
+ * at native resolution.</p>
  *
  * <p>The resolve is an ordinary post-chain pass rather than a hardware blit. A linear blit only
  * reads a 2x2 neighbourhood per output pixel, which wastes most samples above 2x and collapses to
@@ -37,7 +39,6 @@ public final class SsaaController {
     private static final SsaaController INSTANCE = new SsaaController();
     private static final String TARGET_LABEL = "Salt's SSAA Scene";
     private static final Identifier SCENE_TARGET_ID = Identifier.parse(SaltsAntiAliasing.MOD_ID + ":scene_color");
-    private static final Identifier RESOLVE_EFFECT = Identifier.parse(SaltsAntiAliasing.MOD_ID + ":ssaa_resolve");
     private static final Set<Identifier> EXTERNAL_TARGETS = Set.of(PostChain.MAIN_TARGET_ID, SCENE_TARGET_ID);
 
     private final CrossFrameResourcePool resourcePool = new CrossFrameResourcePool(3);
@@ -50,6 +51,10 @@ public final class SsaaController {
     private String failedSceneSetupSignature;
     private boolean warnedResolveUnavailable;
 
+    private static Identifier resolveEffect(SsaaSharpness sharpness) {
+        return Identifier.parse(SaltsAntiAliasing.MOD_ID + ":" + sharpness.effectName());
+    }
+
     private SsaaController() {
     }
 
@@ -61,7 +66,7 @@ public final class SsaaController {
      * Redirects Minecraft's world rendering into a supersampled scene target for this frame, if the
      * selected level and the GPU allow it. Does nothing (native rendering) otherwise.
      */
-    public void beginSceneRendering(GameRenderer gameRenderer, SsaaLevel level) {
+    public void beginSceneRendering(GameRenderer gameRenderer, SsaaLevel level, SsaaSharpness sharpness) {
         RenderSystem.assertOnRenderThread();
         clearFrameState();
 
@@ -102,9 +107,10 @@ public final class SsaaController {
 
             // Look the resolve up before allocating anything, so a broken shader never leaves the
             // frame redirected into a target that cannot be resolved.
-            PostChain chain = minecraft.getShaderManager().getPostChain(RESOLVE_EFFECT, EXTERNAL_TARGETS);
+            Identifier resolveEffect = resolveEffect(sharpness);
+            PostChain chain = minecraft.getShaderManager().getPostChain(resolveEffect, EXTERNAL_TARGETS);
             if (chain == null) {
-                warnResolveUnavailable();
+                warnResolveUnavailable(resolveEffect);
                 return;
             }
             warnedResolveUnavailable = false;
@@ -281,14 +287,14 @@ public final class SsaaController {
         );
     }
 
-    private void warnResolveUnavailable() {
+    private void warnResolveUnavailable(Identifier resolveEffect) {
         if (warnedResolveUnavailable) {
             return;
         }
 
         warnedResolveUnavailable = true;
         SaltsAntiAliasing.LOGGER.error(
-                "SSAA resolve effect {} could not be loaded; rendering at native resolution", RESOLVE_EFFECT
+                "SSAA resolve effect {} could not be loaded; rendering at native resolution", resolveEffect
         );
     }
 

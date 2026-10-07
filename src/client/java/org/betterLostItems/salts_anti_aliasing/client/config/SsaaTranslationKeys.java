@@ -19,6 +19,15 @@ public final class SsaaTranslationKeys {
     public static final String SSAA_WARNING = "options.salts_anti_aliasing.ssaa.warning";
     public static final String SSAA_IMPROVED_TRANSPARENCY = "options.salts_anti_aliasing.ssaa.improved_transparency";
 
+    /** Slider label with the current sharpness inserted, for example "SSAA Sharpness: Low". */
+    public static final String SHARPNESS_LABEL = "options.salts_anti_aliasing.sharpness";
+    public static final String SHARPNESS_NAME = "options.salts_anti_aliasing.sharpness.name";
+    public static final String SHARPNESS_TOOLTIP = "options.salts_anti_aliasing.sharpness.tooltip";
+    public static final String SHARPNESS_OFF = "options.salts_anti_aliasing.sharpness.off";
+    public static final String SHARPNESS_LOW = "options.salts_anti_aliasing.sharpness.low";
+    public static final String SHARPNESS_MEDIUM = "options.salts_anti_aliasing.sharpness.medium";
+    public static final String SHARPNESS_HIGH = "options.salts_anti_aliasing.sharpness.high";
+
     public static final List<String> ALL = List.of(
             SCREEN_TITLE,
             SECTION_HEADER,
@@ -28,8 +37,25 @@ public final class SsaaTranslationKeys {
             SSAA_OFF,
             SSAA_WARNING_LABEL,
             SSAA_WARNING,
-            SSAA_IMPROVED_TRANSPARENCY
+            SSAA_IMPROVED_TRANSPARENCY,
+            SHARPNESS_LABEL,
+            SHARPNESS_NAME,
+            SHARPNESS_TOOLTIP,
+            SHARPNESS_OFF,
+            SHARPNESS_LOW,
+            SHARPNESS_MEDIUM,
+            SHARPNESS_HIGH
     );
+
+    /** Translation key for the name of a sharpness setting. */
+    public static String sharpnessKey(SsaaSharpness sharpness) {
+        return switch (sharpness) {
+            case OFF -> SHARPNESS_OFF;
+            case LOW -> SHARPNESS_LOW;
+            case MEDIUM -> SHARPNESS_MEDIUM;
+            case HIGH -> SHARPNESS_HIGH;
+        };
+    }
 
     private SsaaTranslationKeys() {
     }

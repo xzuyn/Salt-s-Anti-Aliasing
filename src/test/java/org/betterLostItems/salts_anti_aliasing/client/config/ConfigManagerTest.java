@@ -43,6 +43,31 @@ final class ConfigManagerTest {
     }
 
     @Test
+    void sharpnessSurvivesARestart() {
+        ConfigManager first = manager("sharpness.json");
+        first.load();
+        assertEquals(SsaaSharpness.LOW, first.sharpness());
+        assertEquals(SsaaSharpness.HIGH, first.setSharpness(SsaaSharpness.HIGH));
+
+        ConfigManager second = manager("sharpness.json");
+        second.load();
+
+        assertEquals(SsaaSharpness.HIGH, second.sharpness());
+    }
+
+    @Test
+    void levelAndSharpnessAreIndependent() {
+        ConfigManager manager = manager("independent.json");
+        manager.load();
+
+        manager.setLevel(SsaaLevel.X9);
+        manager.setSharpness(SsaaSharpness.OFF);
+
+        assertEquals(SsaaLevel.X9, manager.level());
+        assertEquals(SsaaSharpness.OFF, manager.sharpness());
+    }
+
+    @Test
     void settingNullFallsBackToTheDefault() {
         ConfigManager manager = manager("null.json");
         manager.load();
