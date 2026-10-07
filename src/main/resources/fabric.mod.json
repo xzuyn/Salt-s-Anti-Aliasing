@@ -3,16 +3,13 @@
   "id": "salts_anti_aliasing",
   "version": "${version}",
   "name": "Salt's Anti Aliasing",
-  "description": "Client-side anti-aliasing, sharpening, and upscale pipeline foundation for Minecraft.",
+  "description": "Super sampling anti-aliasing (SSAA) for Minecraft: render the world at 2x, 4x, 9x or more and average it down to your screen.",
   "icon": "assets/salts_anti_aliasing/icon.png",
   "authors": [],
   "contact": {},
   "license": "All-Rights-Reserved",
   "environment": "client",
   "entrypoints": {
-    "fabric-datagen": [
-      "org.betterLostItems.salts_anti_aliasing.client.SaltsAntiAliasingDataGenerator"
-    ],
     "client": [
       "org.betterLostItems.salts_anti_aliasing.client.SaltsAntiAliasingClient"
     ],
@@ -27,7 +24,6 @@
     ]
   },
   "mixins": [
-    "salts_anti_aliasing.mixins.json",
     {
       "config": "salts_anti_aliasing.client.mixins.json",
       "environment": "client"

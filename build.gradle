@@ -21,12 +21,6 @@ loom {
     }
 }
 
-fabricApi {
-    configureDataGeneration {
-        client = true
-    }
-}
-
 repositories {
     // Add repositories to retrieve artifacts from in here.
     // You should only use this when depending on other mods because
@@ -70,10 +64,6 @@ processResources {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
                 "loader_version": project.loader_version
-    }
-
-    from("native/redist") {
-        into "assets/${project.archives_base_name.replace('-', '_')}/native"
     }
 }
 

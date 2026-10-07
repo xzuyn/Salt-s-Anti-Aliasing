@@ -11,44 +11,34 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Consumer;
 
 /**
- * Fabric-backed persistence adapter for the shared anti-aliasing config.
- *
- * <p>The in-memory {@link AntiAliasingConfig} is plain data and can be reused by every
- * version jar. This manager is the Fabric 26.2 implementation of loading, validating,
- * editing, and saving that data.</p>
+ * Loads, validates, edits and saves {@link SsaaConfig}. All access is synchronized because the
+ * render thread reads the level every frame while the UI thread may change it.
  */
 public final class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private final Path configPath;
-    private AntiAliasingConfig config = new AntiAliasingConfig();
+    private SsaaConfig config = new SsaaConfig();
 
-    /**
-     * Creates a config manager instance with the collaborators or initial state supplied by the
-     * caller.
-     * @param configPath config path value supplied by the caller or Minecraft callback
-     */
     private ConfigManager(Path configPath) {
         this.configPath = configPath;
         config.sanitize();
     }
 
-    /**
-     * Handles create default as part of the anti-aliasing render, configuration, or compatibility
-     * flow.
-     * @return a newly created instance configured for the current mod/runtime context
-     */
+    /** Config manager backed by {@code <config dir>/salts_anti_aliasing.json}. */
     public static ConfigManager createDefault() {
         Path configDir = FabricLoader.getInstance().getConfigDir();
-        return new ConfigManager(configDir.resolve(SaltsAntiAliasing.MOD_ID + ".json"));
+        return forPath(configDir.resolve(SaltsAntiAliasing.MOD_ID + ".json"));
     }
 
-    /**
-     * Loads config from disk, creating or repairing the file when needed.
-     */
+    /** Config manager backed by an explicit file; used by tests. */
+    public static ConfigManager forPath(Path configPath) {
+        return new ConfigManager(configPath);
+    }
+
+    /** Loads the config from disk, creating or repairing the file when needed. */
     public synchronized void load() {
         if (Files.notExists(configPath)) {
             save();
@@ -56,8 +46,8 @@ public final class ConfigManager {
         }
 
         try (Reader reader = Files.newBufferedReader(configPath)) {
-            AntiAliasingConfig loaded = GSON.fromJson(reader, AntiAliasingConfig.class);
-            config = loaded == null ? new AntiAliasingConfig() : loaded;
+            SsaaConfig loaded = GSON.fromJson(reader, SsaaConfig.class);
+            config = loaded == null ? new SsaaConfig() : loaded;
             boolean migrated = config.needsMigration();
             config.sanitize();
             if (migrated) {
@@ -65,47 +55,35 @@ public final class ConfigManager {
             }
         } catch (IOException | JsonSyntaxException exception) {
             SaltsAntiAliasing.LOGGER.warn("Falling back to default config after failing to read {}", configPath, exception);
-            config = new AntiAliasingConfig();
+            config = new SsaaConfig();
             config.sanitize();
             save();
         }
     }
 
-    /**
-     * Returns a defensive copy so renderer code can use a stable frame-local view.
-     */
-    public synchronized AntiAliasingConfig snapshot() {
+    /** Returns a defensive copy. */
+    public synchronized SsaaConfig snapshot() {
         return config.copy();
     }
 
-    /**
-     * Handles mode as part of the anti-aliasing render, configuration, or compatibility flow.
-     * @return active anti-aliasing mode
-     */
-    public synchronized AntiAliasingMode mode() {
-        return config.mode;
+    public synchronized SsaaLevel level() {
+        return config.level;
     }
 
     /**
-     * Coordinates record metrics enabled within the anti-aliasing render, configuration, or compatibility flow.
-     * @return whether the operation or state is enabled
+     * Changes the SSAA level and saves it if it actually changed.
+     * @return the level now in effect
      */
-    public synchronized boolean recordMetricsEnabled() {
-        return config.recordMetrics;
+    public synchronized SsaaLevel setLevel(SsaaLevel level) {
+        SsaaLevel requested = SsaaLevel.clamp(level);
+        if (requested != config.level) {
+            config.level = requested;
+            config.sanitize();
+            save();
+        }
+        return config.level;
     }
 
-    /**
-     * Applies a mutation, re-sanitizes the config, and persists the new value.
-     */
-    public synchronized void edit(Consumer<AntiAliasingConfig> editor) {
-        editor.accept(config);
-        config.sanitize();
-        save();
-    }
-
-    /**
-     * Writes the current config to disk.
-     */
     public synchronized void save() {
         try {
             Files.createDirectories(configPath.getParent());

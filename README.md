@@ -1,231 +1,71 @@
 # Salt's Anti Aliasing
 
-Salt's Anti Aliasing is a client-side Fabric mod that adds anti-aliasing, sharpening, and spatial upscaling controls to Minecraft.
+A client-side Fabric mod for **Minecraft 26.2** that does one thing: super sampling anti-aliasing (SSAA).
 
-This branch is the **Fabric 26.2 branch**. It targets:
+The 3D world is rendered at a higher resolution and then averaged down to your screen. The HUD and menus
+are drawn afterwards at normal resolution, so text stays sharp.
 
-```text
-Minecraft/Fabric target: 26.2
-Fabric Loader >= project loader_version
-Fabric API matching 26.2
-Java 25
+## Using it
+
+Open **Options > Video Settings** and use the **Supersampling (SSAA)** slider at the bottom. With Mod Menu
+installed there is also a settings screen, and with Sodium installed there is a "Salt's Anti Aliasing" page.
+
+Levels are named by how many rendered pixels are averaged into each screen pixel, like other games and
+GPU drivers do:
+
+| Level | Pixels rendered | Per axis |
+|-------|-----------------|----------|
+| Off   | 1x              | 1.00     |
+| 2x    | 2x              | 1.41     |
+| 4x    | 4x              | 2.00     |
+| 9x    | 9x              | 3.00     |
+| 16x   | 16x             | 4.00     |
+| 25x   | 25x             | 5.00     |
+| 36x   | 36x             | 6.00     |
+| 64x   | 64x             | 8.00     |
+
+Levels above 16x are marked with `(!)`: they cost a lot of performance and GPU memory, and are skipped
+(rendering normally, with a log warning) if the scaled image would exceed your GPU's maximum texture size.
+
+SSAA cannot be turned on or changed while Minecraft's **Improved Transparency** option is on. Turning it
+off is always allowed.
+
+## How it works
+
+1. `GameRendererMixin` swaps Minecraft's main render target for a larger scene target at the start of the
+   world render (`SsaaController.beginSceneRendering`).
+2. The world renders into it at `sqrt(samples)` times the width and height.
+3. When the world is done, the `ssaa_resolve` post effect averages it into the real main target
+   (`SsaaController.endSceneRendering`).
+
+The resolve shader (`shaders/post/ssaa_resolve.fsh`) is an exact **area-weighted box filter**: each output
+pixel averages every source pixel under it, weighted by how much of that pixel it covers. This works for any
+level, including 2x, keeps brightness exact, and uses every rendered sample. Averaging happens on
+Minecraft's stored (gamma-encoded) colors, matching how the game blends everything else.
+
+Earlier versions resolved with a single hardware linear blit. That only reads 2x2 pixels per output pixel,
+so above 2x it threw most samples away, and at odd integer scales (300%, 500%, 700%) it reduced to a single
+point sample, which is no anti-aliasing at all.
+
+## Config
+
+`config/salts_anti_aliasing.json` stores a single `level`. Config files from earlier versions are migrated
+automatically: if SSAA was selected, the closest level is chosen (for example the old 200% becomes 4x);
+anything else becomes Off. All other old settings are discarded.
+
+## Building
+
+```
+./gradlew build
+./gradlew runClient
 ```
 
-This branch is intentionally kept separate from the 1.21.8-1.21.11 modern jar and any legacy or mid 1.21 jars. The code layout should match those branches wherever the Minecraft APIs allow it, but the hook descriptors and renderer adapter remain branch-specific.
+Requires Java 25. Unit tests cover the level math, config migration and persistence, and keep the lang
+file, post effect and shader in sync.
 
-## Version Jar Strategy
+## What was removed
 
-The project is expected to ship separate jar families from related branches:
-
-```text
-legacy jar       -> early 1.21 renderer, old integer texture/FBO path
-mid jar          -> transitional GPU texture renderer
-modern jar       -> 1.21.8-1.21.11 modern GPU texture view/framegraph path
-fabric 26.2 jar -> 26.2 renderer descriptors and Fabric API surface
-```
-
-The point of this split is to avoid one giant jar full of runtime version checks, reflection, and fragile optional mixins. Each jar owns the Minecraft hook layer for its renderer family while sharing the same mode concepts and pipeline planning model where practical.
-
-## Architecture Goal
-
-The code is organized around two ideas:
-
-1. **Core logic should be portable.**
-   Config values, mode semantics, quality presets, pipeline planning, pass ids, target descriptions, metrics shape, and debug concepts should not care which Minecraft minor version is running.
-
-2. **Platform glue should be replaceable.**
-   Mixins, Fabric APIs, Minecraft render target classes, keyboard descriptors, post-chain APIs, and Vulkan/GPU details belong in adapter layers that can differ between jars.
-
-## Current Package Boundaries
-
-```text
-org.betterLostItems.salts_anti_aliasing
-  client/
-    config/              Shared config and mode data.
-    gui/                 Fabric/Minecraft UI adapters.
-    metrics/             Runtime metrics and report generation.
-    debug/               Debug HUD and edge analysis helpers.
-    platform/modern/     Fabric 26.2 bridge facade.
-    render/
-      api/               Backend-neutral render vocabulary.
-      common/            Shared planning/runtime coordination.
-      vulkan/            Vulkan renderer controllers and capability policy.
-  mixin/client/          Thin Fabric 26.2 Minecraft hook points.
-```
-
-## Important Separation Rules
-
-- Core config enums must not create Minecraft `Component` objects.
-- Core pipeline planning must not know about mixin descriptors.
-- Mixins should delegate immediately to `client.platform.modern`.
-- `client.platform.modern` may know about Minecraft classes and renderer hook descriptors.
-- `client.render.vulkan` may know about Minecraft's Vulkan/GPU resources and renderer internals.
-- Version checks should not be added here to support unrelated jar families.
-- If another Minecraft/Fabric target needs a genuinely different render path, create or update the matching jar branch.
-
-## Rendering Modes
-
-The branch is structured around these modes:
-
-```text
-Off
-FXAA
-MSAA
-SSAA
-SMAA
-NIS Upscale
-DLSS Super Resolution
-FSR2 Super Resolution
-FSR3 Super Resolution
-FSR3 Super Resolution + Frame Generation
-FSR1 Upscale
-TAA
-```
-
-Sharpening is an independent 0–100% control available with every mode, including Off, and defaults to 0%. The shared planner expresses each mode as conceptual passes and targets. The runtime requires Minecraft's Vulkan backend for every anti-aliasing mode; non-Vulkan sessions keep saved settings but block rendering and mode cycling until Minecraft is restarted on Vulkan.
-
-MSAA also exposes an optional alpha-to-coverage control, disabled by default. Enabling it smooths cutout texture edges but may make distant foliage fade or stipple.
-
-SSAA percentages are per axis. The 200% option renders at twice the output width and twice the output height, so it evaluates four source pixels for every output pixel: conventional 4x SSAA. The selectable range now extends to 800% per axis (64x as many scene pixels). Values above 400% display an extreme-performance warning because they may heavily impact frame rate and GPU memory usage or exceed the GPU's maximum texture size at high output resolutions.
-
-The optional **Cycle AA Mode** key binding is unbound by default so it cannot collide with shader-pack shortcuts (including Iris's `O` binding). It can be assigned under Minecraft's Controls screen; existing custom bindings remain intact. Existing installations that already saved the old `O` default should clear or reassign it once in Controls.
-
-## DLSS Super Resolution
-
-DLSS is optional and disabled by default. The repo does not include NVIDIA Streamline/DLSS binaries or a NVIDIA application ID.
-
-To test DLSS locally, provide:
-
-```text
-dlssBridgePath       absolute path to salts_dlss_bridge.dll
-dlssPluginPath       absolute path to the Streamline plugin/DLSS runtime folder
-dlssApplicationId    NVIDIA-provided application ID
-dlssLogPath          optional absolute log output folder
-```
-
-The same values can be overridden before startup with:
-
-```text
-SALTS_DLSS_BRIDGE_PATH
-SALTS_DLSS_PLUGIN_PATH
-SALTS_DLSS_APPLICATION_ID
-SALTS_DLSS_LOG_PATH
-```
-
-or Java properties:
-
-```text
-salts.dlss.bridgePath
-salts.dlss.pluginPath
-salts.dlss.applicationId
-salts.dlss.logPath
-```
-
-The native bridge project lives in `native/dlss_bridge`. The normal Gradle build does not compile it; build it separately against a local NVIDIA Streamline SDK.
-
-## AMD FSR2/FSR3
-
-The Windows x64 release jar bundles the mod's FSR JNI bridge and AMD FidelityFX Vulkan runtime. Users should only need to install the jar, run Minecraft on Vulkan, and select an FSR mode.
-
-Advanced overrides are still available:
-
-```text
-SALTS_FSR_BRIDGE_PATH
-SALTS_FSR_RUNTIME_PATH
-SALTS_FSR_LOG_PATH
-```
-
-or Java properties:
-
-```text
-salts.fsr.bridgePath
-salts.fsr.runtimePath
-salts.fsr.logPath
-```
-
-If neither bridge nor runtime path is configured, the bundled native files are extracted to `.minecraft/salts_anti_aliasing/native/...` and loaded from there. FSR3 Frame Generation remains separate from FSR3 Super Resolution and only appears when the real FidelityFX Vulkan frame-generation swapchain path initializes successfully. The integration reserves distinct SDK queues during Vulkan device creation, keeps HUD-less scene capture immediately before GUI rendering, and verifies actual generated display presents through FidelityFX rather than estimating them from Minecraft's frame rate.
-
-## Platform Hook Layer
-
-`ModernMinecraftHooks` is the main facade between mixins and the renderer.
-
-Mixins should do only this:
-
-1. Land on a Minecraft method.
-2. Collect parameters.
-3. Delegate to `ModernMinecraftHooks`.
-
-This keeps version-porting work contained. Other jar branches can provide a facade with the same intent but different descriptors and renderer calls.
-
-## Build
-
-```powershell
-.\gradlew.bat build
-```
-
-The primary development target is set in `gradle.properties`:
-
-```properties
-minecraft_version=26.2
-```
-
-## Run Client
-
-```powershell
-.\gradlew.bat runClient
-```
-
-The dev run uses the configured Minecraft version and Fabric API in `gradle.properties`.
-
-## Porting Guide For Other Jars
-
-When syncing a sibling jar branch:
-
-1. Keep `client.config` mode semantics compatible unless a feature truly cannot exist.
-2. Keep `client.render.api` target/pass vocabulary as close as possible.
-3. Replace the branch-specific platform facade.
-4. Replace mixin descriptors in `mixin/client`.
-5. Replace or adapt backend controller packages where Minecraft resource ownership changed.
-6. Avoid adding runtime checks for unrelated branches.
-
-## Current Renderer Notes
-
-- Scene-only effects are applied after 3D world rendering and before HUD/menu rendering.
-- Internal-resolution modes temporarily redirect Minecraft's main render target.
-- Anti-aliasing is blocked unless Minecraft reports an active Vulkan device.
-- MSAA uses native Vulkan multisampled scene textures and resolves into Minecraft's main target after world rendering. Cutout textures keep Minecraft's binary alpha behavior by default, with optional alpha-to-coverage for players who prefer smoother cutout edges.
-- TAA uses jitter, a persistent history target, and dynamic uniforms.
-- DLSS redirects world rendering to a Streamline-selected internal-resolution target and evaluates through the optional JNI bridge when all external requirements are met.
-- FSR2/FSR3 use the bundled FidelityFX Vulkan runtime on Windows x64 and can be overridden with explicit native paths. FSR3 Frame Generation uses the SDK replacement swapchain, dedicated queue roles, per-present interpolation state, and a HUD-less scene image.
-- Dynamic uniforms are uploaded through writable GPU buffers when Minecraft's post-chain uniforms are immutable.
-
-## Development Principles
-
-- Prefer explicit render target ownership.
-- Keep pass ids stable and readable.
-- Keep shader constants documented in Java or JSON when they affect visible tuning.
-- Keep UI labels in lang files and UI adapters, not core enums.
-- Keep branch-specific hooks close to the branch-specific platform or renderer adapter.
-- Treat crashes on unsupported Minecraft targets as metadata/versioning problems, not runtime feature toggles.
-
-## Verification Checklist
-
-Before calling a Fabric 26.2 branch change ready:
-
-```text
-.\gradlew.bat build
-.\gradlew.bat runClient
-Open Video Settings
-Cycle modes from Off through TAA
-Enter a world
-Toggle edge debug with F3+K
-Resize the window
-Return to Video Settings after entering a world
-Check latest.log for mixin or renderer errors
-```
-
-## Future Work
-
-- Keep this branch structurally synced with sibling jar branches.
-- Add automated smoke checks per jar family.
-- Keep common config and pass-planning behavior synchronized across branches.
+Everything except SSAA: FXAA, SMAA, MSAA, TAA, NIS, FSR1/2/3, DLSS, frame generation, sharpening, the mode
+dropdown and keybind, the edge-debug view, performance metrics, the native bridges and bundled AMD
+runtime, and all Vulkan-specific mixins. Because the resolve is an ordinary post-chain pass instead of a
+Vulkan blit, the mod no longer contains any Vulkan-specific code.
