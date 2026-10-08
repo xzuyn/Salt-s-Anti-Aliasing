@@ -2,6 +2,7 @@ package org.betterLostItems.salts_anti_aliasing.client.gui;
 
 import net.minecraft.network.chat.Component;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
+import org.betterLostItems.salts_anti_aliasing.client.config.SsaaResolveFilter;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaTranslationKeys;
 
@@ -46,6 +47,16 @@ public final class ClientText {
     /** Tooltip without the Improved Transparency note, for UIs that disable the control instead. */
     public static Component tooltip(SsaaLevel level) {
         return tooltip(level, false);
+    }
+
+    /** "Area (Exact Box)", "Lanczos 3", ... */
+    public static Component filterLabel(SsaaResolveFilter filter) {
+        return Component.translatable(SsaaTranslationKeys.filterKey(filter));
+    }
+
+    /** Tooltip for the filter control; the same for every setting. */
+    public static Component filterTooltip(SsaaResolveFilter filter) {
+        return Component.translatable(SsaaTranslationKeys.FILTER_TOOLTIP);
     }
 
     /** "Off", "Low", "Medium" or "High". */

@@ -10,7 +10,16 @@
           "target": "salts_anti_aliasing:scene_color"
         }
       ],
-      "output": "minecraft:main"
+      "output": "minecraft:main",
+      "uniforms": {
+        "SsaaResolveConfig": [
+          {
+            "name": "Filter",
+            "type": "float",
+            "value": 1.0
+          }
+        ]
+      }
     }
   ]
 }

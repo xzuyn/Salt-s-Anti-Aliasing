@@ -74,6 +74,24 @@ public final class ConfigManager {
         return config.sharpness;
     }
 
+    public synchronized SsaaResolveFilter resolveFilter() {
+        return config.resolveFilter;
+    }
+
+    /**
+     * Changes the filter that downscales the supersampled image and saves it if it actually changed.
+     * @return the filter now in effect
+     */
+    public synchronized SsaaResolveFilter setResolveFilter(SsaaResolveFilter filter) {
+        SsaaResolveFilter requested = SsaaResolveFilter.clamp(filter);
+        if (requested != config.resolveFilter) {
+            config.resolveFilter = requested;
+            config.sanitize();
+            save();
+        }
+        return config.resolveFilter;
+    }
+
     /**
      * Changes the sharpening applied to the SSAA result and saves it if it actually changed.
      * @return the sharpness now in effect

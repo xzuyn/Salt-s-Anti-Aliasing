@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import org.betterLostItems.salts_anti_aliasing.client.SaltsAntiAliasingClient;
 import org.betterLostItems.salts_anti_aliasing.client.config.ConfigManager;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
+import org.betterLostItems.salts_anti_aliasing.client.config.SsaaResolveFilter;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaTranslationKeys;
 
@@ -35,6 +36,7 @@ public final class SsaaVideoSettingsSection {
 
         int width = Math.max(MIN_WIDE_ROW_WIDTH, list.getRowWidth());
         list.addBig(sized(levelSlider(config), width));
+        list.addBig(sized(filterSlider(config), width));
         list.addBig(sized(sharpnessSlider(config), width));
     }
 
@@ -54,6 +56,16 @@ public final class SsaaVideoSettingsSection {
                         : config.setLevel(requested),
                 level -> Component.translatable(SsaaTranslationKeys.SSAA_LABEL, ClientText.label(level)),
                 level -> ClientText.tooltip(level, improvedTransparencyEnabled())
+        );
+    }
+
+    private static StepSliderWidget<SsaaResolveFilter> filterSlider(ConfigManager config) {
+        return new StepSliderWidget<>(
+                SsaaResolveFilter.values(),
+                config::resolveFilter,
+                config::setResolveFilter,
+                filter -> Component.translatable(SsaaTranslationKeys.FILTER_LABEL, ClientText.filterLabel(filter)),
+                ClientText::filterTooltip
         );
     }
 

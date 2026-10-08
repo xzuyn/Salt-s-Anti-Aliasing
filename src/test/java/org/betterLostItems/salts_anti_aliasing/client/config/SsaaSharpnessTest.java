@@ -22,18 +22,6 @@ final class SsaaSharpnessTest {
     }
 
     @Test
-    void offResolvesWithoutASharpenPass() {
-        assertEquals("ssaa_resolve", SsaaSharpness.OFF.effectName());
-    }
-
-    @Test
-    void everyEnabledSettingHasItsOwnEffect() {
-        assertEquals("ssaa_resolve_sharp_low", SsaaSharpness.LOW.effectName());
-        assertEquals("ssaa_resolve_sharp_medium", SsaaSharpness.MEDIUM.effectName());
-        assertEquals("ssaa_resolve_sharp_high", SsaaSharpness.HIGH.effectName());
-    }
-
-    @Test
     void nullFallsBackToTheDefaultAndTheDefaultIsGentle() {
         assertEquals(SsaaSharpness.defaultSharpness(), SsaaSharpness.clamp(null));
         assertEquals(SsaaSharpness.LOW, SsaaSharpness.defaultSharpness());

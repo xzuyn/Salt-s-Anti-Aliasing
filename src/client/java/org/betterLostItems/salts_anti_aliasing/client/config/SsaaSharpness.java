@@ -9,20 +9,18 @@ package org.betterLostItems.salts_anti_aliasing.client.config;
  * {@link #MEDIUM} goes slightly beyond native crispness and {@link #HIGH} is clearly sharpened.</p>
  *
  * <p>The strengths here must match the {@code Strength} values in the
- * {@code ssaa_resolve_sharp_*.json} post effects; a test checks that they do.</p>
+ * {@code ssaa_resolve_*_sharp_*.json} post effects; a test checks that they do.</p>
  */
 public enum SsaaSharpness {
-    OFF(0.0f, "ssaa_resolve"),
-    LOW(0.25f, "ssaa_resolve_sharp_low"),
-    MEDIUM(0.5f, "ssaa_resolve_sharp_medium"),
-    HIGH(1.0f, "ssaa_resolve_sharp_high");
+    OFF(0.0f),
+    LOW(0.25f),
+    MEDIUM(0.5f),
+    HIGH(1.0f);
 
     private final float strength;
-    private final String effectName;
 
-    SsaaSharpness(float strength, String effectName) {
+    SsaaSharpness(float strength) {
         this.strength = strength;
-        this.effectName = effectName;
     }
 
     /** Value of the shader's {@code Strength} uniform. */
@@ -32,11 +30,6 @@ public enum SsaaSharpness {
 
     public boolean enabled() {
         return this != OFF;
-    }
-
-    /** Name of the post effect (under {@code post_effect/}) that resolves and sharpens at this setting. */
-    public String effectName() {
-        return effectName;
     }
 
     public static SsaaSharpness defaultSharpness() {

@@ -35,6 +35,17 @@ final class SsaaConfigTest {
     }
 
     @Test
+    void configWithoutAFilterGetsTheAreaDefault() {
+        assertEquals(SsaaResolveFilter.AREA, parse("{\"configVersion\": 3, \"level\": \"X4\"}").resolveFilter);
+    }
+
+    @Test
+    void savedFilterIsKeptAndUnknownNamesFallBack() {
+        assertEquals(SsaaResolveFilter.LANCZOS3, parse("{\"configVersion\": 3, \"resolveFilter\": \"LANCZOS3\"}").resolveFilter);
+        assertEquals(SsaaResolveFilter.AREA, parse("{\"configVersion\": 3, \"resolveFilter\": \"SINC9\"}").resolveFilter);
+    }
+
+    @Test
     void savedSharpnessIsKept() {
         assertEquals(SsaaSharpness.HIGH, parse("{\"configVersion\": 3, \"level\": \"X4\", \"sharpness\": \"HIGH\"}").sharpness);
     }

@@ -1,6 +1,8 @@
 package org.betterLostItems.salts_anti_aliasing.client.config;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Every translation key the mod uses, in one Minecraft-free place so the lang file can be checked
@@ -28,7 +30,13 @@ public final class SsaaTranslationKeys {
     public static final String SHARPNESS_MEDIUM = "options.salts_anti_aliasing.sharpness.medium";
     public static final String SHARPNESS_HIGH = "options.salts_anti_aliasing.sharpness.high";
 
-    public static final List<String> ALL = List.of(
+    /** Slider label with the current downscale filter inserted, for example "SSAA Filter: Lanczos 3". */
+    public static final String FILTER_LABEL = "options.salts_anti_aliasing.filter";
+    public static final String FILTER_NAME = "options.salts_anti_aliasing.filter.name";
+    public static final String FILTER_TOOLTIP = "options.salts_anti_aliasing.filter.tooltip";
+    private static final String FILTER_VALUE_PREFIX = "options.salts_anti_aliasing.filter.";
+
+    public static final List<String> ALL = Stream.concat(Stream.of(
             SCREEN_TITLE,
             SECTION_HEADER,
             SSAA_LABEL,
@@ -44,8 +52,12 @@ public final class SsaaTranslationKeys {
             SHARPNESS_OFF,
             SHARPNESS_LOW,
             SHARPNESS_MEDIUM,
-            SHARPNESS_HIGH
-    );
+            SHARPNESS_HIGH,
+            FILTER_LABEL,
+            FILTER_NAME,
+            FILTER_TOOLTIP
+    ), Arrays.stream(SsaaResolveFilter.values()).map(SsaaTranslationKeys::filterKey)).toList();
+
 
     /** Translation key for the name of a sharpness setting. */
     public static String sharpnessKey(SsaaSharpness sharpness) {
@@ -55,6 +67,11 @@ public final class SsaaTranslationKeys {
             case MEDIUM -> SHARPNESS_MEDIUM;
             case HIGH -> SHARPNESS_HIGH;
         };
+    }
+
+    /** Translation key for the name of a downscale filter. */
+    public static String filterKey(SsaaResolveFilter filter) {
+        return FILTER_VALUE_PREFIX + filter.id();
     }
 
     private SsaaTranslationKeys() {

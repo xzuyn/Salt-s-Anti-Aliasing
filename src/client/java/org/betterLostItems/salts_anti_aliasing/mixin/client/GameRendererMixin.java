@@ -61,6 +61,7 @@ public abstract class GameRendererMixin {
         SsaaController.instance().beginSceneRendering(
                 gameRenderer,
                 SaltsAntiAliasingClient.level(),
+                SaltsAntiAliasingClient.resolveFilter(),
                 SaltsAntiAliasingClient.sharpness()
         );
 

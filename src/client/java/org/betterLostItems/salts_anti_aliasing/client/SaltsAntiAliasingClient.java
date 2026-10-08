@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import org.betterLostItems.salts_anti_aliasing.SaltsAntiAliasing;
 import org.betterLostItems.salts_anti_aliasing.client.config.ConfigManager;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
+import org.betterLostItems.salts_anti_aliasing.client.config.SsaaResolveFilter;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 
 /** Client entrypoint: loads the saved SSAA level so the renderer and the settings UI can use it. */
@@ -34,10 +35,16 @@ public final class SaltsAntiAliasingClient implements ClientModInitializer {
         return configManager == null ? SsaaSharpness.defaultSharpness() : configManager.sharpness();
     }
 
+    /** The downscale filter to resolve with right now; the default until the config has loaded. */
+    public static SsaaResolveFilter resolveFilter() {
+        return configManager == null ? SsaaResolveFilter.defaultFilter() : configManager.resolveFilter();
+    }
+
     @Override
     public void onInitializeClient() {
         configManager = ConfigManager.createDefault();
         configManager.load();
-        SaltsAntiAliasing.LOGGER.info("SSAA level: {}, sharpness: {}", configManager.level(), configManager.sharpness());
+        SaltsAntiAliasing.LOGGER.info("SSAA level: {}, filter: {}, sharpness: {}",
+                configManager.level(), configManager.resolveFilter(), configManager.sharpness());
     }
 }

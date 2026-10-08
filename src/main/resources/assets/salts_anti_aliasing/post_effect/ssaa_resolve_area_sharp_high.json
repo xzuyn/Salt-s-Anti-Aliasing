@@ -12,7 +12,16 @@
           "target": "salts_anti_aliasing:scene_color"
         }
       ],
-      "output": "swap"
+      "output": "swap",
+      "uniforms": {
+        "SsaaResolveConfig": [
+          {
+            "name": "Filter",
+            "type": "float",
+            "value": 2.0
+          }
+        ]
+      }
     },
     {
       "vertex_shader": "minecraft:core/screenquad",
@@ -29,7 +38,7 @@
           {
             "name": "Strength",
             "type": "float",
-            "value": 0.25
+            "value": 1.0
           }
         ]
       }

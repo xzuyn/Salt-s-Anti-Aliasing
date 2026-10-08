@@ -1,0 +1,47 @@
+{
+  "targets": {
+    "swap": {}
+  },
+  "passes": [
+    {
+      "vertex_shader": "minecraft:core/screenquad",
+      "fragment_shader": "salts_anti_aliasing:post/ssaa_resolve",
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "salts_anti_aliasing:scene_color"
+        }
+      ],
+      "output": "swap",
+      "uniforms": {
+        "SsaaResolveConfig": [
+          {
+            "name": "Filter",
+            "type": "float",
+            "value": 4.0
+          }
+        ]
+      }
+    },
+    {
+      "vertex_shader": "minecraft:core/screenquad",
+      "fragment_shader": "salts_anti_aliasing:post/ssaa_sharpen",
+      "inputs": [
+        {
+          "sampler_name": "In",
+          "target": "swap"
+        }
+      ],
+      "output": "minecraft:main",
+      "uniforms": {
+        "SsaaSharpenConfig": [
+          {
+            "name": "Strength",
+            "type": "float",
+            "value": 0.25
+          }
+        ]
+      }
+    }
+  ]
+}

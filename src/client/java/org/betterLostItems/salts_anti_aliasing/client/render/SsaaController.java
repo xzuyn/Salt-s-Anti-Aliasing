@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.Identifier;
 import org.betterLostItems.salts_anti_aliasing.SaltsAntiAliasing;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
+import org.betterLostItems.salts_anti_aliasing.client.config.SsaaResolveFilter;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 
 import java.util.HashMap;
@@ -27,8 +28,8 @@ import java.util.Set;
  * <p>Each frame, while a level above Off is selected, Minecraft's main render target is
  * temporarily replaced by a larger scene target so the world renders at {@code level.scaleFactor()}
  * times the output size on each axis. Once the world is finished, a {@code ssaa_resolve*} post
- * effect averages that image down into the real main target with an exact area-weighted box
- * filter (optionally followed by a gentle adaptive sharpen), and the HUD and menus then draw on top
+ * effect filters that image down into the real main target with the selected downscale
+ * filter (exact area-weighted box by default, optionally followed by a gentle adaptive sharpen), and the HUD and menus then draw on top
  * at native resolution.</p>
  *
  * <p>The resolve is an ordinary post-chain pass rather than a hardware blit. A linear blit only
@@ -51,8 +52,8 @@ public final class SsaaController {
     private String failedSceneSetupSignature;
     private boolean warnedResolveUnavailable;
 
-    private static Identifier resolveEffect(SsaaSharpness sharpness) {
-        return Identifier.parse(SaltsAntiAliasing.MOD_ID + ":" + sharpness.effectName());
+    private static Identifier resolveEffect(SsaaResolveFilter filter, SsaaSharpness sharpness) {
+        return Identifier.parse(SaltsAntiAliasing.MOD_ID + ":" + filter.effectName(sharpness));
     }
 
     private SsaaController() {
@@ -66,7 +67,12 @@ public final class SsaaController {
      * Redirects Minecraft's world rendering into a supersampled scene target for this frame, if the
      * selected level and the GPU allow it. Does nothing (native rendering) otherwise.
      */
-    public void beginSceneRendering(GameRenderer gameRenderer, SsaaLevel level, SsaaSharpness sharpness) {
+    public void beginSceneRendering(
+            GameRenderer gameRenderer,
+            SsaaLevel level,
+            SsaaResolveFilter filter,
+            SsaaSharpness sharpness
+    ) {
         RenderSystem.assertOnRenderThread();
         clearFrameState();
 
@@ -107,7 +113,7 @@ public final class SsaaController {
 
             // Look the resolve up before allocating anything, so a broken shader never leaves the
             // frame redirected into a target that cannot be resolved.
-            Identifier resolveEffect = resolveEffect(sharpness);
+            Identifier resolveEffect = resolveEffect(filter, sharpness);
             PostChain chain = minecraft.getShaderManager().getPostChain(resolveEffect, EXTERNAL_TARGETS);
             if (chain == null) {
                 warnResolveUnavailable(resolveEffect);
