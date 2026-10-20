@@ -2,12 +2,14 @@ package org.betterLostItems.salts_anti_aliasing.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import org.betterLostItems.salts_anti_aliasing.SaltsAntiAliasing;
+import org.betterLostItems.salts_anti_aliasing.client.antilag.AntiLagRuntime;
+import org.betterLostItems.salts_anti_aliasing.client.config.AntiLagMode;
 import org.betterLostItems.salts_anti_aliasing.client.config.ConfigManager;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaResolveFilter;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 
-/** Client entrypoint: loads the saved SSAA level so the renderer and the settings UI can use it. */
+/** Client entrypoint: loads the saved settings so the renderer and the settings UI can use them. */
 public final class SaltsAntiAliasingClient implements ClientModInitializer {
     private static ConfigManager configManager;
 
@@ -40,11 +42,19 @@ public final class SaltsAntiAliasingClient implements ClientModInitializer {
         return configManager == null ? SsaaResolveFilter.defaultFilter() : configManager.resolveFilter();
     }
 
+    /** Whether AMD Anti-Lag is switched on right now; Off until the config has loaded. */
+    public static AntiLagMode antiLag() {
+        return configManager == null ? AntiLagMode.defaultMode() : configManager.antiLag();
+    }
+
     @Override
     public void onInitializeClient() {
         configManager = ConfigManager.createDefault();
         configManager.load();
-        SaltsAntiAliasing.LOGGER.info("SSAA level: {}, filter: {}, sharpness: {}",
-                configManager.level(), configManager.resolveFilter(), configManager.sharpness());
+        // The Anti-Lag hooks live in library classes and cannot see this class's config on their own.
+        AntiLagRuntime.setModeSource(SaltsAntiAliasingClient::antiLag);
+        SaltsAntiAliasing.LOGGER.info("SSAA level: {}, filter: {}, sharpness: {}, AMD Anti-Lag: {}",
+                configManager.level(), configManager.resolveFilter(), configManager.sharpness(),
+                configManager.antiLag());
     }
 }

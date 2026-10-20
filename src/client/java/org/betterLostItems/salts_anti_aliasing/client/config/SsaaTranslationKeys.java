@@ -1,5 +1,7 @@
 package org.betterLostItems.salts_anti_aliasing.client.config;
 
+import org.betterLostItems.salts_anti_aliasing.client.antilag.AntiLagStatus;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -36,6 +38,22 @@ public final class SsaaTranslationKeys {
     public static final String FILTER_TOOLTIP = "options.salts_anti_aliasing.filter.tooltip";
     private static final String FILTER_VALUE_PREFIX = "options.salts_anti_aliasing.filter.";
 
+    /** Heading for settings that are about latency rather than image quality. */
+    public static final String LATENCY_SECTION = "options.salts_anti_aliasing.latency_section";
+
+    /** Slider label with the current mode inserted, for example "AMD Anti-Lag: On". */
+    public static final String ANTI_LAG_LABEL = "options.salts_anti_aliasing.antilag";
+    public static final String ANTI_LAG_NAME = "options.salts_anti_aliasing.antilag.name";
+    public static final String ANTI_LAG_TOOLTIP = "options.salts_anti_aliasing.antilag.tooltip";
+    public static final String ANTI_LAG_OFF = "options.salts_anti_aliasing.antilag.off";
+    public static final String ANTI_LAG_ON = "options.salts_anti_aliasing.antilag.on";
+    /** Appended to the tooltip when no Vulkan device has been seen (OpenGL, or the hooks did not apply). */
+    public static final String ANTI_LAG_STATUS_UNKNOWN = "options.salts_anti_aliasing.antilag.status.unknown";
+    /** Appended to the tooltip when the GPU or driver lacks VK_AMD_anti_lag. */
+    public static final String ANTI_LAG_STATUS_UNSUPPORTED = "options.salts_anti_aliasing.antilag.status.unsupported";
+    /** Appended to the tooltip after Anti-Lag hit an error and switched itself off. */
+    public static final String ANTI_LAG_STATUS_FAILED = "options.salts_anti_aliasing.antilag.status.failed";
+
     public static final List<String> ALL = Stream.concat(Stream.of(
             SCREEN_TITLE,
             SECTION_HEADER,
@@ -55,7 +73,16 @@ public final class SsaaTranslationKeys {
             SHARPNESS_HIGH,
             FILTER_LABEL,
             FILTER_NAME,
-            FILTER_TOOLTIP
+            FILTER_TOOLTIP,
+            LATENCY_SECTION,
+            ANTI_LAG_LABEL,
+            ANTI_LAG_NAME,
+            ANTI_LAG_TOOLTIP,
+            ANTI_LAG_OFF,
+            ANTI_LAG_ON,
+            ANTI_LAG_STATUS_UNKNOWN,
+            ANTI_LAG_STATUS_UNSUPPORTED,
+            ANTI_LAG_STATUS_FAILED
     ), Arrays.stream(SsaaResolveFilter.values()).map(SsaaTranslationKeys::filterKey)).toList();
 
 
@@ -66,6 +93,27 @@ public final class SsaaTranslationKeys {
             case LOW -> SHARPNESS_LOW;
             case MEDIUM -> SHARPNESS_MEDIUM;
             case HIGH -> SHARPNESS_HIGH;
+        };
+    }
+
+    /** Translation key for the name of an Anti-Lag setting. */
+    public static String antiLagKey(AntiLagMode mode) {
+        return switch (mode) {
+            case OFF -> ANTI_LAG_OFF;
+            case ON -> ANTI_LAG_ON;
+        };
+    }
+
+    /**
+     * Translation key for the explanation shown when Anti-Lag cannot do anything right now, or null when it
+     * can (or is still being confirmed on the first frame) and no note is needed.
+     */
+    public static String antiLagStatusKey(AntiLagStatus status) {
+        return switch (status) {
+            case UNKNOWN -> ANTI_LAG_STATUS_UNKNOWN;
+            case UNSUPPORTED -> ANTI_LAG_STATUS_UNSUPPORTED;
+            case FAILED -> ANTI_LAG_STATUS_FAILED;
+            case REQUESTED, SUPPORTED -> null;
         };
     }
 

@@ -1,6 +1,9 @@
 package org.betterLostItems.salts_anti_aliasing.client.gui;
 
 import net.minecraft.network.chat.Component;
+import org.betterLostItems.salts_anti_aliasing.client.antilag.AntiLagRuntime;
+import org.betterLostItems.salts_anti_aliasing.client.antilag.AntiLagStatus;
+import org.betterLostItems.salts_anti_aliasing.client.config.AntiLagMode;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaResolveFilter;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
@@ -67,5 +70,30 @@ public final class ClientText {
     /** Tooltip for the sharpness control; the same for every setting. */
     public static Component sharpnessTooltip(SsaaSharpness sharpness) {
         return Component.translatable(SsaaTranslationKeys.SHARPNESS_TOOLTIP);
+    }
+
+    /** "Off" or "On". */
+    public static Component antiLagLabel(AntiLagMode mode) {
+        return Component.translatable(SsaaTranslationKeys.antiLagKey(mode));
+    }
+
+    /**
+     * Tooltip for the Anti-Lag control: what it does, plus a note explaining why it will not do anything
+     * when this machine cannot use it.
+     */
+    public static Component antiLagTooltip(AntiLagMode mode) {
+        return antiLagTooltipFor(AntiLagRuntime.status());
+    }
+
+    /** The Anti-Lag tooltip for an explicit status; split out so it can be tested without a running game. */
+    public static Component antiLagTooltipFor(AntiLagStatus status) {
+        Component tooltip = Component.translatable(SsaaTranslationKeys.ANTI_LAG_TOOLTIP);
+        String statusKey = SsaaTranslationKeys.antiLagStatusKey(status);
+        if (statusKey != null) {
+            tooltip = tooltip.copy()
+                    .append(Component.literal("\n\n"))
+                    .append(Component.translatable(statusKey));
+        }
+        return tooltip;
     }
 }

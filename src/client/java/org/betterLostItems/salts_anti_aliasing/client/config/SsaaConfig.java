@@ -1,7 +1,11 @@
 package org.betterLostItems.salts_anti_aliasing.client.config;
 
 /**
- * Mutable settings persisted to disk: the SSAA level, the filter that downscales it, and the sharpening applied to the result.
+ * Mutable settings persisted to disk: the SSAA level, the filter that downscales it, the sharpening applied to the
+ * result, and the independent AMD Anti-Lag switch.
+ *
+ * <p>{@code antiLag} was added after config version 3 shipped. Older files simply do not contain it, so it
+ * reads as its default (Off) without needing a version bump or migration.</p>
  *
  * <p>Releases before 0.2 stored a multi-mode config. Their {@code mode} and
  * {@code ssaaScaleLevel} fields are still read once so that players who used SSAA keep an
@@ -14,6 +18,7 @@ public final class SsaaConfig {
     public SsaaLevel level = SsaaLevel.defaultLevel();
     public SsaaSharpness sharpness = SsaaSharpness.defaultSharpness();
     public SsaaResolveFilter resolveFilter = SsaaResolveFilter.defaultFilter();
+    public AntiLagMode antiLag = AntiLagMode.defaultMode();
 
     // Legacy fields (config version < 3). Read for migration, then cleared so they are not rewritten.
     public String mode;
@@ -25,6 +30,7 @@ public final class SsaaConfig {
         copy.level = level;
         copy.sharpness = sharpness;
         copy.resolveFilter = resolveFilter;
+        copy.antiLag = antiLag;
         copy.mode = mode;
         copy.ssaaScaleLevel = ssaaScaleLevel;
         return copy;
@@ -42,6 +48,7 @@ public final class SsaaConfig {
         level = SsaaLevel.clamp(level);
         sharpness = SsaaSharpness.clamp(sharpness);
         resolveFilter = SsaaResolveFilter.clamp(resolveFilter);
+        antiLag = AntiLagMode.clamp(antiLag);
         configVersion = CURRENT_CONFIG_VERSION;
         mode = null;
         ssaaScaleLevel = null;

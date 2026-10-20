@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.0 - AMD Anti-Lag
+
+### Added
+
+- **AMD Anti-Lag** setting (Off / On, default Off), separate from SSAA, in Video Settings, Mod Menu and Sodium.
+  It uses `VK_AMD_anti_lag` to keep the CPU from running ahead of the GPU, which shortens the delay between
+  your input and the picture on screen. It works with SSAA on or off and takes effect immediately.
+- It only does something when Minecraft renders with Vulkan on a GPU whose driver exposes the extension. The
+  setting's tooltip says so when it cannot do anything (OpenGL, unsupported GPU/driver, or after an error).
+
+### How it works
+
+- Three LWJGL hooks, none on Minecraft's own classes: `vkCreateDevice` (enables the extension and its feature
+  whenever the GPU supports them), `glfwPollEvents` (INPUT stage, the first poll after a present) and
+  `vkQueuePresentKHR` (PRESENT stage, same frame index).
+- The hooks live in their own mixin config (`salts_anti_aliasing.antilag.mixins.json`) that is not required and
+  fails soft, so SSAA is unaffected if they cannot apply to a Minecraft build.
+- If a driver rejects device creation with the extension, creation is retried unchanged. Any runtime error turns
+  Anti-Lag off for the session and logs once. `-Dsalts_anti_aliasing.antilag=false` keeps the mod out of device
+  creation entirely.
+
+### Notes
+
+- Config files need no migration: a missing `antiLag` key reads as Off.
+- Verified by compiling against LWJGL 3.3.5, 3.3.6 and 3.4.0 and by exercising the device-creation edit on real
+  native memory. It has **not** been run on an AMD GPU against Minecraft's Vulkan renderer.
+
 ## 0.2.1 - Sharpness
 
 ### Added

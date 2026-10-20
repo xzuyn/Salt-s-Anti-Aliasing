@@ -27,5 +27,14 @@
   "options.salts_anti_aliasing.sharpness.low": "Low",
   "options.salts_anti_aliasing.sharpness.medium": "Medium",
   "options.salts_anti_aliasing.sharpness.high": "High",
-  "options.salts_anti_aliasing.sharpness.tooltip": "Averaging many pixels into one removes jagged edges but also softens fine detail slightly. This adds a gentle, edge-aware sharpen to the result to win some of that back. Low is meant to roughly match the crispness of rendering without SSAA; Medium and High go beyond it and can add faint halos around high-contrast edges. Only applies while SSAA is on."
+  "options.salts_anti_aliasing.sharpness.tooltip": "Averaging many pixels into one removes jagged edges but also softens fine detail slightly. This adds a gentle, edge-aware sharpen to the result to win some of that back. Low is meant to roughly match the crispness of rendering without SSAA; Medium and High go beyond it and can add faint halos around high-contrast edges. Only applies while SSAA is on.",
+  "options.salts_anti_aliasing.latency_section": "Latency",
+  "options.salts_anti_aliasing.antilag": "AMD Anti-Lag: %s",
+  "options.salts_anti_aliasing.antilag.name": "AMD Anti-Lag",
+  "options.salts_anti_aliasing.antilag.off": "Off",
+  "options.salts_anti_aliasing.antilag.on": "On",
+  "options.salts_anti_aliasing.antilag.tooltip": "Asks your AMD graphics driver (VK_AMD_anti_lag) to stop the CPU running ahead of the GPU, which shortens the delay between your input and the picture on screen. It is separate from SSAA and works with it on or off, and it takes effect immediately. It only does something when Minecraft renders with Vulkan on an AMD GPU whose driver supports it.",
+  "options.salts_anti_aliasing.antilag.status.unknown": "Not active: Minecraft's Vulkan renderer was not detected.",
+  "options.salts_anti_aliasing.antilag.status.unsupported": "Not available: this GPU or driver does not support VK_AMD_anti_lag.",
+  "options.salts_anti_aliasing.antilag.status.failed": "Turned off for this session after an error. See the game log for details."
 }

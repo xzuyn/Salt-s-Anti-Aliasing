@@ -1,6 +1,7 @@
 # Salt's Anti Aliasing
 
-A client-side Fabric mod for **Minecraft 26.2** that does one thing: super sampling anti-aliasing (SSAA).
+A client-side Fabric mod for **Minecraft 26.2** that does super sampling anti-aliasing (SSAA), plus an optional,
+separate **AMD Anti-Lag** switch for lower input latency on Vulkan.
 
 The 3D world is rendered at a higher resolution and then averaged down to your screen. The HUD and menus
 are drawn afterwards at normal resolution, so text stays sharp.
@@ -30,6 +31,31 @@ Levels above 16x are marked with `(!)`: they cost a lot of performance and GPU m
 
 SSAA cannot be turned on or changed while Minecraft's **Improved Transparency** option is on. Turning it
 off is always allowed.
+
+## AMD Anti-Lag
+
+**AMD Anti-Lag** (under the **Latency** heading in the same settings screens) is independent of SSAA: it works
+with SSAA on or off, and changes apply immediately. It uses the Vulkan extension
+[`VK_AMD_anti_lag`](https://docs.vulkan.org/refpages/latest/refpages/source/VK_AMD_anti_lag.html) so the driver can
+keep the CPU from getting ahead of the GPU, which shortens the delay between your input and the picture.
+
+It only does something when **Minecraft renders with Vulkan** on a GPU whose **driver exposes the extension**
+(AMD's, in practice). On OpenGL or other GPUs the setting is harmless and does nothing; its tooltip says why.
+
+How it is wired (all through LWJGL, none of it in Minecraft's own classes):
+
+| Stage | Hook | What is sent |
+|-------|------|--------------|
+| Device creation | `vkCreateDevice` | Enables `VK_AMD_anti_lag` and its `antiLag` feature when the GPU supports them, whatever the setting is, so toggling needs no restart. If the driver rejects it, device creation is retried unchanged. |
+| Start of frame | `glfwPollEvents` (first poll after a present) | INPUT stage with a new frame index |
+| Before present | `vkQueuePresentKHR` | PRESENT stage with the same frame index |
+
+Turning the setting Off sends one OFF to the driver. The driver frame limit is left at 0 (none), so Minecraft's own
+frame limiter stays in charge. The hooks live in a separate, non-required mixin config, so SSAA is unaffected if
+they cannot apply, and any runtime error turns Anti-Lag off for the session with one log line. Start the game with
+`-Dsalts_anti_aliasing.antilag=false` to keep the mod out of Vulkan device creation entirely.
+
+Requires LWJGL 3.3.5 or newer at runtime (the first release with the `VK_AMD_anti_lag` bindings that this uses).
 
 ### If the image looks soft
 
@@ -70,7 +96,7 @@ point sample, which is no anti-aliasing at all.
 
 ## Config
 
-`config/salts_anti_aliasing.json` stores `level` and `sharpness`. Config files from earlier versions are migrated
+`config/salts_anti_aliasing.json` stores `level`, `resolveFilter`, `sharpness` and `antiLag` (`OFF` or `ON`). Config files from earlier versions are migrated
 automatically: if SSAA was selected, the closest level is chosen (for example the old 200% becomes 4x);
 anything else becomes Off. All other old settings are discarded.
 
@@ -86,7 +112,8 @@ file, post effect and shader in sync.
 
 ## What was removed
 
-Everything except SSAA: FXAA, SMAA, MSAA, TAA, NIS, FSR1/2/3, DLSS, frame generation, sharpening, the mode
+Everything except SSAA and Anti-Lag: FXAA, SMAA, MSAA, TAA, NIS, FSR1/2/3, DLSS, frame generation, sharpening, the mode
 dropdown and keybind, the edge-debug view, performance metrics, the native bridges and bundled AMD
-runtime, and all Vulkan-specific mixins. Because the resolve is an ordinary post-chain pass instead of a
-Vulkan blit, the mod no longer contains any Vulkan-specific code.
+runtime, and all of the old Vulkan-specific mixins. The SSAA resolve is an ordinary post-chain pass instead of a
+Vulkan blit, so SSAA itself contains no Vulkan code. The only Vulkan code is the optional Anti-Lag hooks, which
+touch LWJGL rather than Minecraft's classes.

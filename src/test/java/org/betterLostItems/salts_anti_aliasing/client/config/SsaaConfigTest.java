@@ -40,6 +40,39 @@ final class SsaaConfigTest {
     }
 
     @Test
+    void antiLagIsOffByDefaultAndForFilesThatNeverMentionedIt() {
+        assertEquals(AntiLagMode.OFF, new SsaaConfig().antiLag);
+        assertEquals(AntiLagMode.OFF, parse("{\"configVersion\": 3, \"level\": \"X4\"}").antiLag);
+    }
+
+    @Test
+    void savedAntiLagIsKeptAndUnknownNamesFallBack() {
+        assertEquals(AntiLagMode.ON, parse("{\"configVersion\": 3, \"antiLag\": \"ON\"}").antiLag);
+        assertEquals(AntiLagMode.OFF, parse("{\"configVersion\": 3, \"antiLag\": \"DRIVER_CONTROL\"}").antiLag);
+    }
+
+    @Test
+    void antiLagIsIndependentOfTheSsaaLevel() {
+        SsaaConfig config = parse("{\"configVersion\": 3, \"level\": \"OFF\", \"antiLag\": \"ON\"}");
+
+        assertEquals(SsaaLevel.OFF, config.level);
+        assertEquals(AntiLagMode.ON, config.antiLag);
+    }
+
+    @Test
+    void migratingAnOldConfigLeavesAntiLagOff() {
+        assertEquals(AntiLagMode.OFF, parse("{\"configVersion\": 2, \"mode\": \"SSAA\", \"ssaaScaleLevel\": \"X200\"}").antiLag);
+    }
+
+    @Test
+    void copyKeepsAntiLag() {
+        SsaaConfig original = new SsaaConfig();
+        original.antiLag = AntiLagMode.ON;
+
+        assertEquals(AntiLagMode.ON, original.copy().antiLag);
+    }
+
+    @Test
     void savedFilterIsKeptAndUnknownNamesFallBack() {
         assertEquals(SsaaResolveFilter.LANCZOS3, parse("{\"configVersion\": 3, \"resolveFilter\": \"LANCZOS3\"}").resolveFilter);
         assertEquals(SsaaResolveFilter.AREA, parse("{\"configVersion\": 3, \"resolveFilter\": \"SINC9\"}").resolveFilter);

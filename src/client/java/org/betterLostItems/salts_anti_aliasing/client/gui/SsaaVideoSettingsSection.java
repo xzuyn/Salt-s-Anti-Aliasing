@@ -4,13 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.network.chat.Component;
 import org.betterLostItems.salts_anti_aliasing.client.SaltsAntiAliasingClient;
+import org.betterLostItems.salts_anti_aliasing.client.config.AntiLagMode;
 import org.betterLostItems.salts_anti_aliasing.client.config.ConfigManager;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaLevel;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaResolveFilter;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaSharpness;
 import org.betterLostItems.salts_anti_aliasing.client.config.SsaaTranslationKeys;
 
-/** Adds the SSAA controls to an options list (Video Settings, or the Mod Menu screen). */
+/** Adds the SSAA and AMD Anti-Lag controls to an options list (Video Settings, or the Mod Menu screen). */
 public final class SsaaVideoSettingsSection {
     private static final int MIN_WIDE_ROW_WIDTH = 150;
 
@@ -27,7 +28,10 @@ public final class SsaaVideoSettingsSection {
         addControlsTo(list);
     }
 
-    /** Adds just the sliders; Mod Menu uses this because its screen title already names the mod. */
+    /**
+     * Adds just the controls; Mod Menu uses this because its screen title already names the mod. AMD
+     * Anti-Lag sits under its own small heading because it is about latency, not image quality.
+     */
     public static void addControlsTo(OptionsList list) {
         ConfigManager config = SaltsAntiAliasingClient.configOrNull();
         if (config == null) {
@@ -38,6 +42,8 @@ public final class SsaaVideoSettingsSection {
         list.addBig(sized(levelSlider(config), width));
         list.addBig(sized(filterSlider(config), width));
         list.addBig(sized(sharpnessSlider(config), width));
+        list.addHeader(Component.translatable(SsaaTranslationKeys.LATENCY_SECTION));
+        list.addBig(sized(antiLagSlider(config), width));
     }
 
     /** Minecraft's Improved Transparency option blocks turning SSAA on or changing its level. */
@@ -76,6 +82,16 @@ public final class SsaaVideoSettingsSection {
                 config::setSharpness,
                 sharpness -> Component.translatable(SsaaTranslationKeys.SHARPNESS_LABEL, ClientText.sharpnessLabel(sharpness)),
                 ClientText::sharpnessTooltip
+        );
+    }
+
+    private static StepSliderWidget<AntiLagMode> antiLagSlider(ConfigManager config) {
+        return new StepSliderWidget<>(
+                AntiLagMode.values(),
+                config::antiLag,
+                config::setAntiLag,
+                mode -> Component.translatable(SsaaTranslationKeys.ANTI_LAG_LABEL, ClientText.antiLagLabel(mode)),
+                ClientText::antiLagTooltip
         );
     }
 

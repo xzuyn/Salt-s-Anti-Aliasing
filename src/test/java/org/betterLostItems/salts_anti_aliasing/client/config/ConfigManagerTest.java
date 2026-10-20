@@ -56,6 +56,33 @@ final class ConfigManagerTest {
     }
 
     @Test
+    void antiLagDefaultsToOffAndSurvivesARestart() {
+        ConfigManager first = manager("anti_lag.json");
+        first.load();
+        assertEquals(AntiLagMode.OFF, first.antiLag());
+        assertEquals(AntiLagMode.ON, first.setAntiLag(AntiLagMode.ON));
+
+        ConfigManager second = manager("anti_lag.json");
+        second.load();
+
+        assertEquals(AntiLagMode.ON, second.antiLag());
+    }
+
+    @Test
+    void antiLagDoesNotDisturbTheSsaaSettings() {
+        ConfigManager manager = manager("anti_lag_independent.json");
+        manager.load();
+        manager.setLevel(SsaaLevel.X4);
+        manager.setSharpness(SsaaSharpness.HIGH);
+
+        manager.setAntiLag(AntiLagMode.ON);
+
+        assertEquals(SsaaLevel.X4, manager.level());
+        assertEquals(SsaaSharpness.HIGH, manager.sharpness());
+        assertEquals(AntiLagMode.OFF, manager.setAntiLag(null));
+    }
+
+    @Test
     void levelAndSharpnessAreIndependent() {
         ConfigManager manager = manager("independent.json");
         manager.load();

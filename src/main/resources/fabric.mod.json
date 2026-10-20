@@ -3,7 +3,7 @@
   "id": "salts_anti_aliasing",
   "version": "${version}",
   "name": "Salt's Anti Aliasing",
-  "description": "Super sampling anti-aliasing (SSAA) for Minecraft: render the world at 2x, 4x, 9x or more and average it down to your screen.",
+  "description": "Super sampling anti-aliasing (SSAA) for Minecraft: render the world at 2x, 4x, 9x or more and average it down to your screen. Also offers optional AMD Anti-Lag on Vulkan.",
   "icon": "assets/salts_anti_aliasing/icon.png",
   "authors": [],
   "contact": {},
@@ -26,6 +26,10 @@
   "mixins": [
     {
       "config": "salts_anti_aliasing.client.mixins.json",
+      "environment": "client"
+    },
+    {
+      "config": "salts_anti_aliasing.antilag.mixins.json",
       "environment": "client"
     }
   ],

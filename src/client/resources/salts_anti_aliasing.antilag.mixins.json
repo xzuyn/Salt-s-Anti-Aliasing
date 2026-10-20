@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "org.betterLostItems.salts_anti_aliasing.mixin.antilag",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "GlfwMixin",
+    "SwapchainMixin",
+    "Vk10Mixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

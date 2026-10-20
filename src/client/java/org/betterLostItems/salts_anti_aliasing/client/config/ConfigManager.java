@@ -78,6 +78,25 @@ public final class ConfigManager {
         return config.resolveFilter;
     }
 
+    public synchronized AntiLagMode antiLag() {
+        return config.antiLag;
+    }
+
+    /**
+     * Turns AMD Anti-Lag on or off and saves it if it actually changed. The render thread reads this
+     * every frame, so the change takes effect immediately without a restart.
+     * @return the mode now in effect
+     */
+    public synchronized AntiLagMode setAntiLag(AntiLagMode mode) {
+        AntiLagMode requested = AntiLagMode.clamp(mode);
+        if (requested != config.antiLag) {
+            config.antiLag = requested;
+            config.sanitize();
+            save();
+        }
+        return config.antiLag;
+    }
+
     /**
      * Changes the filter that downscales the supersampled image and saves it if it actually changed.
      * @return the filter now in effect
