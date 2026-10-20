@@ -6,8 +6,7 @@ import org.betterLostItems.salts_anti_aliasing.client.config.AntiLagMode;
 import java.util.function.Supplier;
 
 /**
- * The part of AMD Anti-Lag that does not touch LWJGL: shared state, the on/off switch, and the entry
- * points the mixins call.
+ * The part of AMD Anti-Lag that does not touch LWJGL: shared state and the on/off switch.
  *
  * <p>Every Vulkan type lives in {@link VulkanAntiLag}, which is only loaded after a Vulkan present has
  * actually happened. On OpenGL, or on a machine without LWJGL's Vulkan module, it is never touched.</p>
@@ -77,23 +76,5 @@ public final class AntiLagRuntime {
         ready = false;
         status = AntiLagStatus.FAILED;
         SaltsAntiAliasing.LOGGER.error("AMD Anti-Lag hit an error and is disabled for this session", cause);
-    }
-
-    // ---- Entry points called by the mixins ------------------------------------------------------------
-
-    /**
-     * Called before every {@code glfwPollEvents}: the start of a frame, just before input is sampled.
-     * Cheap and Vulkan-free until a Vulkan device with Anti-Lag has been seen.
-     */
-    public static void beforePollEvents() {
-        if (!ready) {
-            return;
-        }
-
-        try {
-            VulkanAntiLag.inputStage();
-        } catch (Throwable throwable) {
-            fail(throwable);
-        }
     }
 }

@@ -30,12 +30,14 @@ import java.nio.IntBuffer;
  *       device is created, long before the player can open a settings screen. So they are enabled whenever
  *       the GPU supports them, regardless of the setting. Enabling an extension nobody calls does nothing.
  *       If the driver refuses the edited request, the original request is sent again unchanged.</li>
- *   <li>{@code glfwPollEvents}: the first poll after a present is the start of a frame, just before the
- *       game samples input. That is the INPUT stage.</li>
- *   <li>{@code vkQueuePresentKHR}: the PRESENT stage, with the same frame index as the INPUT stage.</li>
+ *   <li>{@code vkQueuePresentKHR}, just before it: the PRESENT stage of the frame that is open.</li>
+ *   <li>{@code vkQueuePresentKHR}, just after it returns: the INPUT stage of the next frame, with a new
+ *       frame index. In Minecraft's frame loop this is where the next frame's input is sampled. It is not
+ *       taken from {@code glfwPollEvents}, because mods like Ixeris poll events on another thread.</li>
  * </ol>
  *
- * <p>All of this runs on Minecraft's render thread. Nothing here is reached on OpenGL.</p>
+ * <p>Every call therefore happens on the thread that presents, Minecraft's render thread. Nothing here is
+ * reached on OpenGL.</p>
  */
 public final class VulkanAntiLag {
     /** {@code VK_MAKE_API_VERSION(0, 1, 1, 0)}. */
@@ -48,10 +50,10 @@ public final class VulkanAntiLag {
     private static final ThreadLocal<DeviceCreateInfoEdit> PENDING_EDIT = new ThreadLocal<>();
     private static final ThreadLocal<Boolean> RETRYING = new ThreadLocal<>();
 
-    /** The device Anti-Lag is currently being used on; render thread only. */
-    private static VkDevice device;
+    /** The device Anti-Lag is currently being used on. Written by the presenting thread, cleared on destroy. */
+    private static volatile VkDevice device;
     /** Whether the driver was last told Anti-Lag is on, so turning it off sends exactly one OFF. */
-    private static boolean driverTold;
+    private static volatile boolean driverTold;
 
     private VulkanAntiLag() {
     }
@@ -190,7 +192,7 @@ public final class VulkanAntiLag {
 
     // ---- vkQueuePresentKHR ------------------------------------------------------------------------------
 
-    /** Runs just before {@code vkQueuePresentKHR}: the PRESENT stage of the frame that was opened earlier. */
+    /** Runs just before {@code vkQueuePresentKHR}: the PRESENT stage of the frame that is open. */
     public static void beforePresent(VkQueue queue) {
         VkDevice queueDevice = queue.getDevice();
         if (queueDevice != device) {
@@ -227,10 +229,17 @@ public final class VulkanAntiLag {
         AntiLagRuntime.setReady(enabled);
     }
 
-    // ---- glfwPollEvents ---------------------------------------------------------------------------------
+    /** Runs just after {@code vkQueuePresentKHR} returns: the start of the next frame, its INPUT stage. */
+    public static void afterPresent(VkQueue queue) {
+        if (!AntiLagRuntime.ready() || queue.getDevice() != device) {
+            return;
+        }
 
-    /** The INPUT stage: called right before the game samples input for a new frame. */
-    static void inputStage() {
+        inputStage();
+    }
+
+    /** The INPUT stage: the new frame's input is about to be sampled. */
+    private static void inputStage() {
         if (!AntiLagRuntime.requestedMode().enabled()) {
             tellDriverOff();
             return;

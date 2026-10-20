@@ -4,7 +4,6 @@
   "package": "org.betterLostItems.salts_anti_aliasing.mixin.antilag",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "GlfwMixin",
     "SwapchainMixin",
     "Vk10Mixin"
   ],

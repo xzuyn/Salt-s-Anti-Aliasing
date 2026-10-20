@@ -47,8 +47,11 @@ How it is wired (all through LWJGL, none of it in Minecraft's own classes):
 | Stage | Hook | What is sent |
 |-------|------|--------------|
 | Device creation | `vkCreateDevice` | Enables `VK_AMD_anti_lag` and its `antiLag` feature when the GPU supports them, whatever the setting is, so toggling needs no restart. If the driver rejects it, device creation is retried unchanged. |
-| Start of frame | `glfwPollEvents` (first poll after a present) | INPUT stage with a new frame index |
-| Before present | `vkQueuePresentKHR` | PRESENT stage with the same frame index |
+| Before present | `vkQueuePresentKHR` (just before) | PRESENT stage with the open frame's index |
+| Start of next frame | `vkQueuePresentKHR` (just after it returns) | INPUT stage with a new frame index |
+
+Both stages are driven from the present call, on the thread that presents. INPUT is deliberately not tied to
+`glfwPollEvents`, because mods like Ixeris poll window events on a different thread.
 
 Turning the setting Off sends one OFF to the driver. The driver frame limit is left at 0 (none), so Minecraft's own
 frame limiter stays in charge. The hooks live in a separate, non-required mixin config, so SSAA is unaffected if

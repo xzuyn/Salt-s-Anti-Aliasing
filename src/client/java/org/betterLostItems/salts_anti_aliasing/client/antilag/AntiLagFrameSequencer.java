@@ -6,9 +6,8 @@ package org.betterLostItems.salts_anti_aliasing.client.antilag;
  * <p>The Vulkan spec asks for the INPUT stage immediately before the frame's input is processed, and for
  * the PRESENT stage, with the <em>same</em> frame index, right before {@code vkQueuePresentKHR}. Frame
  * indices only ever go up. This class hands out those indices and refuses to open a second frame
- * before the first one was presented, which matters because Minecraft polls window events more than
- * once per frame: only the first poll after a present starts a frame, and any further poll before the
- * next present is ignored.</p>
+ * before the first one was presented, so a repeated INPUT announcement can never pair a frame with the
+ * wrong index.</p>
  *
  * <p>This type is deliberately free of Minecraft and LWJGL classes so it can be unit tested on its own.</p>
  */

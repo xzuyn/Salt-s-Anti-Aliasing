@@ -33,8 +33,7 @@ final class AntiLagFrameSequencerTest {
     }
 
     @Test
-    void extraPollsBeforeThePresentDoNotOpenAnotherFrame() {
-        // Minecraft polls window events more than once per frame.
+    void repeatedInputAnnouncementsBeforeThePresentDoNotOpenAnotherFrame() {
         AntiLagFrameSequencer sequencer = new AntiLagFrameSequencer();
 
         long first = sequencer.beginFrame();
@@ -43,6 +42,23 @@ final class AntiLagFrameSequencerTest {
         assertEquals(NO_FRAME, sequencer.beginFrame());
         assertEquals(first, sequencer.endFrame());
         assertTrue(sequencer.beginFrame() > first);
+    }
+
+    @Test
+    void theRealCallOrderPairsEveryPresentWithTheInputBeforeIt() {
+        // What the swapchain hook does: PRESENT right before vkQueuePresentKHR, then INPUT for the next
+        // frame right after it returns. The very first present has nothing open and announces nothing.
+        AntiLagFrameSequencer sequencer = new AntiLagFrameSequencer();
+        assertEquals(NO_FRAME, sequencer.endFrame());
+        long input = sequencer.beginFrame();
+
+        for (int frame = 0; frame < 4; frame++) {
+            long present = sequencer.endFrame();
+            assertEquals(input, present);
+            long next = sequencer.beginFrame();
+            assertEquals(input + 1, next);
+            input = next;
+        }
     }
 
     @Test

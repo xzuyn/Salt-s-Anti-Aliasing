@@ -12,9 +12,11 @@
 
 ### How it works
 
-- Three LWJGL hooks, none on Minecraft's own classes: `vkCreateDevice` (enables the extension and its feature
-  whenever the GPU supports them), `glfwPollEvents` (INPUT stage, the first poll after a present) and
-  `vkQueuePresentKHR` (PRESENT stage, same frame index).
+- LWJGL hooks, none on Minecraft's own classes: `vkCreateDevice` (enables the extension and its feature
+  whenever the GPU supports them), `vkDestroyDevice` (stop using a device before it goes away) and
+  `vkQueuePresentKHR` (PRESENT stage just before it, INPUT stage of the next frame just after it returns, same
+  frame index per pair). Nothing is hooked on `glfwPollEvents`, so it is safe with Ixeris, which polls events on
+  another thread.
 - The hooks live in their own mixin config (`salts_anti_aliasing.antilag.mixins.json`) that is not required and
   fails soft, so SSAA is unaffected if they cannot apply to a Minecraft build.
 - If a driver rejects device creation with the extension, creation is retried unchanged. Any runtime error turns
